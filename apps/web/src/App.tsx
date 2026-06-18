@@ -1,11 +1,44 @@
+import { useMemo, useState } from "react";
 import { firstStructuralDemoConfig, researchScaleMilestoneConfig, runSimulation } from "@world-abm/core";
+import type { ScenarioConfig } from "@world-abm/core";
+import { ControlSlider } from "./components/ControlSlider";
 import { MetricTile } from "./components/MetricTile";
 import { PathChart } from "./components/PathChart";
 
-const result = runSimulation(firstStructuralDemoConfig);
-const finalPoint = result.path[result.path.length - 1];
-
 export function App() {
+  const [handToMouth, setHandToMouth] = useState(0.35);
+  const [liquidityBuffer, setLiquidityBuffer] = useState(0.3);
+  const [habit, setHabit] = useState(0.2);
+  const [debtStress, setDebtStress] = useState(0.15);
+  const [anchoredExpectations, setAnchoredExpectations] = useState(0.32);
+  const [matchingFriction, setMatchingFriction] = useState(firstStructuralDemoConfig.matchingFriction ?? 0.35);
+  const [wageIndexation, setWageIndexation] = useState(firstStructuralDemoConfig.wageIndexation ?? 0.28);
+  const [ruleSwitching, setRuleSwitching] = useState(firstStructuralDemoConfig.ruleSwitchingIntensity ?? 0.18);
+
+  const scenario = useMemo<ScenarioConfig>(
+    () => ({
+      ...firstStructuralDemoConfig,
+      householdRuleMix: {
+        handToMouth,
+        liquidityBuffer,
+        habit,
+        debtStress
+      },
+      expectationRuleMix: {
+        adaptive: Math.max(0.05, 0.78 - anchoredExpectations),
+        anchored: anchoredExpectations,
+        extrapolative: 0.1,
+        employerSector: 0.12
+      },
+      matchingFriction,
+      wageIndexation,
+      ruleSwitchingIntensity: ruleSwitching
+    }),
+    [anchoredExpectations, debtStress, habit, handToMouth, liquidityBuffer, matchingFriction, ruleSwitching, wageIndexation]
+  );
+  const result = useMemo(() => runSimulation(scenario), [scenario]);
+  const finalPoint = result.path[result.path.length - 1];
+
   return (
     <main className="amor-page">
       <section className="hero">
@@ -39,7 +72,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 1 browser run</span>
+              <span className="snapshot-title">Milestone 2 browser run</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -79,25 +112,44 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 1</p>
-          <h2>Structural ABM status</h2>
+          <p className="amor-kicker">Milestone 2</p>
+          <h2>Household behavior status</h2>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Browser households" value={firstStructuralDemoConfig.households.toLocaleString()} detail="Typed-array Milestone 1 run" />
+          <MetricTile label="Browser households" value={firstStructuralDemoConfig.households.toLocaleString()} detail="Typed-array Milestone 2 run" />
           <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline/local-large target config" />
-          <MetricTile label="Supplier edges" value={result.summary.supplierEdges.toLocaleString()} detail="Explicit directed firm network" />
-          <MetricTile label="Diagnostics" value="Passing" detail="Worker, payroll, network, and CPI checks" />
+          <MetricTile label="Consumption index" value={finalPoint.consumptionIndex.toFixed(2)} detail="Household rule aggregate" />
+          <MetricTile label="Diagnostics" value="Passing" detail="Worker, payroll, network, CPI, household budget" />
+        </div>
+      </section>
+
+      <section className="controls-section">
+        <div className="amor-shell controls-grid">
+          <div>
+            <p className="amor-kicker">Household controls</p>
+            <h2>Behavior mix</h2>
+          </div>
+          <form className="control-panel" aria-label="Milestone 2 household behavior controls">
+            <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
+            <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
+            <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
+            <ControlSlider label="Debt stress" value={debtStress} onChange={setDebtStress} />
+            <ControlSlider label="Anchored expectations" value={anchoredExpectations} onChange={setAnchoredExpectations} />
+            <ControlSlider label="Matching friction" value={matchingFriction} onChange={setMatchingFriction} />
+            <ControlSlider label="Wage indexation" value={wageIndexation} onChange={setWageIndexation} />
+            <ControlSlider label="Rule switching" value={ruleSwitching} onChange={setRuleSwitching} />
+          </form>
         </div>
       </section>
 
       <section className="results-section">
         <div className="amor-shell results-grid">
           <div>
-            <p className="amor-kicker">Seeded Milestone 1 result</p>
+            <p className="amor-kicker">Seeded Milestone 2 result</p>
             <h2>Metadata before conclusions</h2>
             <p>
-              The current browser run is a stylized 100,000-household ABM. It is large enough to test architecture,
-              employer-worker consistency, production-network plumbing, and CPI construction before Norway/EU calibration.
+              The current browser run is a stylized 100,000-household ABM with household decision rules, expectations,
+              employer-worker links, production-network plumbing, and CPI construction before Norway/EU calibration.
             </p>
             <ul className="metadata-list">
               <li>Model version: {result.metadata.modelVersion}</li>
@@ -106,6 +158,7 @@ export function App() {
               <li>Seed policy: {result.metadata.seedPolicy}</li>
               <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
               <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
+              <li>Expected inflation: {(finalPoint.averageInflationExpectation * 100).toFixed(2)} percent</li>
             </ul>
           </div>
           <PathChart path={result.path} />
@@ -115,26 +168,26 @@ export function App() {
       <section className="amor-shell content-section">
         <div className="section-heading">
           <p className="amor-kicker">Next build target</p>
-          <h2>Deepen the Milestone 1 economy</h2>
+          <h2>Move behavior into workers and scenarios</h2>
         </div>
         <div className="work-grid">
           <article>
             <h3>Labor market</h3>
-            <p>Hiring, firing, vacancies, layoffs, and payroll now update exact household employer ids.</p>
+            <p>Wage offers, matching friction, hiring, firing, vacancies, layoffs, and payroll update exact employer ids.</p>
           </article>
           <article>
-            <h3>Production network</h3>
-            <p>Firms now have sector/stage assignments, supplier contracts, and input-cost propagation.</p>
+            <h3>Household rules</h3>
+            <p>Hand-to-mouth, liquidity-buffer, habit, and debt-stress rules now drive consumption and switching.</p>
           </article>
           <article>
-            <h3>Research scale</h3>
-            <p>The next engine pass should move the 1,000,000-household target out of the browser and into offline runs.</p>
+            <h3>Expectations</h3>
+            <p>Adaptive, anchored, extrapolative, and employer-sector expectations now feed household demand.</p>
           </article>
         </div>
         <p className="final-metric">
-          Final Milestone 1 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
-          unemployment {(finalPoint.unemploymentRate * 100).toFixed(2)} percent, output index{" "}
-          {finalPoint.outputIndex.toFixed(1)}.
+          Final Milestone 2 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
+          consumption index {finalPoint.consumptionIndex.toFixed(2)}, unemployment{" "}
+          {(finalPoint.unemploymentRate * 100).toFixed(2)} percent.
         </p>
       </section>
     </main>

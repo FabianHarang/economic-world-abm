@@ -1,11 +1,12 @@
 schema_version: 0.1.0
-scenario_name: milestone_1_browser_100k
+scenario_name: milestone_2_browser_100k
 description: >
-  First structurally faithful browser-scale demonstration run: 100,000 households,
-  1,000 firms, 20 sectors, 25 private banks, explicit employer-worker links,
-  a directed supplier network, adaptive expectations, and a one-time +100 bps
-  policy-rate shock. This is still a reduced-scale browser run; the 1,000,000
-  household target belongs to the offline research engine.
+  Milestone 2 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
+  25 private banks, explicit employer-worker links, a directed supplier network,
+  household behavior rules, expectation rules, wage offers, matching friction,
+  rule switching, and a one-time +100 bps policy-rate shock. This is still a
+  reduced-scale browser run; the 1,000,000 household target belongs to the
+  offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -54,6 +55,21 @@ labor_market:
   firing_friction: medium
   matching_friction: medium
   wage_indexation: 0.25
+households:
+  rule_mix:
+    hand_to_mouth: 0.35
+    liquidity_buffer: 0.30
+    habit: 0.20
+    debt_stress: 0.15
+  expectation_mix:
+    adaptive: 0.48
+    anchored: 0.32
+    extrapolative: 0.10
+    employer_sector: 0.10
+  rule_switching_intensity: 0.18
+  central_bank_credibility: 0.55
+  target_inflation_annual: 0.02
+  debt_service_sensitivity: 0.42
 outputs:
   include_paths:
     - inflation

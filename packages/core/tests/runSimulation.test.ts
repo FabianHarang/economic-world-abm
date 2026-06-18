@@ -6,7 +6,7 @@ import {
   runSimulation
 } from "../src";
 
-describe("runSimulation milestone 1", () => {
+describe("runSimulation milestone 2", () => {
   it("is deterministic for a fixed seed", () => {
     const first = runSimulation(firstStructuralDemoConfig);
     const second = runSimulation(firstStructuralDemoConfig);
@@ -17,7 +17,7 @@ describe("runSimulation milestone 1", () => {
   it("records required metadata and accounting diagnostics", () => {
     const result = runSimulation(firstStructuralDemoConfig);
 
-    expect(result.metadata.scenarioName).toBe("milestone_1_browser_100k");
+    expect(result.metadata.scenarioName).toBe("milestone_2_browser_100k");
     expect(result.metadata.economyContext).toBe("Norway");
     expect(result.metadata.scale.households).toBe(100_000);
     expect(result.metadata.scale.supplierEdges).toBe(5_000);
@@ -25,9 +25,15 @@ describe("runSimulation milestone 1", () => {
     expect(result.diagnostics.payrollConsistent).toBe(true);
     expect(result.diagnostics.supplierNetworkConsistent).toBe(true);
     expect(result.diagnostics.priceIndexConsistent).toBe(true);
+    expect(result.diagnostics.householdBudgetConsistent).toBe(true);
     expect(result.diagnostics.accountingChecksPassed).toBe(true);
     expect(result.path[0].cpi).toBeGreaterThan(0);
+    expect(result.path[0].consumptionIndex).toBeGreaterThan(0);
+    expect(result.path[0].averageInflationExpectation).toBeGreaterThan(-0.05);
+    expect(result.path[0].wageGrowthAnnualized).toEqual(expect.any(Number));
     expect(result.summary.firmsWithWorkers).toBeGreaterThan(0);
+    expect(result.summary.finalRuleMix.handToMouth).toBeGreaterThanOrEqual(0);
+    expect(result.summary.finalRuleMix.debtStress).toBeGreaterThanOrEqual(0);
   });
 
   it("keeps a million-household research target available without running it in the browser app", () => {

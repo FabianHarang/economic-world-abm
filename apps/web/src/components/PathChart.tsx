@@ -27,7 +27,7 @@ export function PathChart({ path }: PathChartProps) {
         ))}
       </svg>
       <figcaption>
-        Inflation path from the deterministic Milestone 1 TypeScript core. This remains a stylized architecture run, not
+        Inflation path from the deterministic Milestone 2 TypeScript core. This remains a stylized architecture run, not
         a calibrated Norway/EU result.
       </figcaption>
     </figure>

@@ -6,13 +6,16 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 1 target:
+Current Milestone 2 target:
 
 - 100,000 households;
 - 1,000 firms;
 - 25 private banks;
 - 20 sectors;
 - 5,000 supplier edges.
+- household behavior rules;
+- expectation rules;
+- wage offers and matching friction.
 
 This is intentionally at the high end of browser-scale work and should move to a Web Worker before richer household-period updates are added.
 

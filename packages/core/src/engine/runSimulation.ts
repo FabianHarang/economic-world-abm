@@ -5,7 +5,27 @@ import {
   computeFirmWorkerCounts
 } from "../accounting/invariants";
 import { createSeededRng } from "../random/seededRng";
-import type { ScenarioConfig, SimulationPoint, SimulationResult } from "../schema/scenario";
+import type {
+  ExpectationRuleMix,
+  HouseholdRuleMix,
+  ScenarioConfig,
+  SimulationPoint,
+  SimulationResult
+} from "../schema/scenario";
+
+const Behavior = {
+  HandToMouth: 0,
+  LiquidityBuffer: 1,
+  Habit: 2,
+  DebtStress: 3
+} as const;
+
+const Expectation = {
+  Adaptive: 0,
+  Anchored: 1,
+  Extrapolative: 2,
+  EmployerSector: 3
+} as const;
 
 interface SupplierNetwork {
   readonly supplierPtr: Int32Array;
@@ -18,6 +38,12 @@ interface EconomyArrays {
   readonly employerId: Int32Array;
   readonly wage: Float64Array;
   readonly hours: Float64Array;
+  readonly householdBehavior: Int8Array;
+  readonly expectationRule: Int8Array;
+  readonly deposits: Float64Array;
+  readonly debt: Float64Array;
+  readonly consumptionHabit: Float64Array;
+  readonly inflationExpectation: Float32Array;
   readonly firmSector: Int16Array;
   readonly firmStage: Int8Array;
   readonly firmBank: Int16Array;
@@ -27,6 +53,8 @@ interface EconomyArrays {
   readonly firmLabor: Int32Array;
   readonly firmBaseLabor: Int32Array;
   readonly firmWageBill: Float64Array;
+  readonly firmWageOffer: Float64Array;
+  readonly firmQuality: Float32Array;
   readonly firmOutput: Float64Array;
   readonly firmCash: Float64Array;
   readonly firmDebt: Float64Array;
@@ -39,6 +67,17 @@ interface EconomyArrays {
   readonly supplierNetwork: SupplierNetwork;
   readonly unemployedPool: number[];
   readonly layoffCursor: Int32Array;
+  readonly baselineConsumption: number;
+  readonly baselineDeposits: number;
+}
+
+interface HouseholdPeriod {
+  readonly consumptionIndex: number;
+  readonly averageInflationExpectation: number;
+  readonly householdDepositsIndex: number;
+  readonly householdDebtServiceRatio: number;
+  readonly ruleMix: HouseholdRuleMix;
+  readonly budgetConsistent: boolean;
 }
 
 export function runSimulation(config: ScenarioConfig): SimulationResult {
@@ -50,19 +89,49 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
 
   let previousCpi = computeCpi(economy.firmPrice, economy.firmSector, economy.sectorWeights);
   let previousPpi = computeAverage(economy.firmPrice);
-  let baseOutput = Math.max(1, computePotentialOutput(economy));
+  let previousInflationAnnualized = config.targetInflationAnnual ?? 0.02;
+  let previousConsumptionIndex = 1;
+  let previousAverageWage = computeAveragePositive(economy.wage);
+  let baseOutput = Math.max(1, computePotentialOutput(economy, 1));
   let cumulativeBankruptcies = 0;
+  let householdBudgetConsistent = true;
 
   for (let period = 0; period < config.periods; period += 1) {
     const policyRateAnnual = policyRateForPeriod(config, period);
     const loanRateAnnual = policyRateAnnual + 0.018 + 0.004 * Math.sin(period / 9);
     const policyShockAnnual = Math.max(0, policyRateAnnual - config.policyRateAnnual);
+
+    const householdPeriod = updateHouseholds(
+      config,
+      economy,
+      previousInflationAnnualized,
+      policyRateAnnual,
+      loanRateAnnual,
+      previousConsumptionIndex,
+      rng
+    );
+    householdBudgetConsistent = householdBudgetConsistent && householdPeriod.budgetConsistent;
+
     const networkInputPressure = computeNetworkInputPressure(economy);
-    const laborFlow = updateLaborMarket(config, economy, rng, policyShockAnnual);
+    const laborFlow = updateLaborMarket(
+      config,
+      economy,
+      rng,
+      policyShockAnnual,
+      householdPeriod.consumptionIndex,
+      householdPeriod.averageInflationExpectation
+    );
 
     recomputePayroll(economy);
 
-    const firmPeriod = updateFirms(config, economy, networkInputPressure, loanRateAnnual, policyShockAnnual);
+    const firmPeriod = updateFirms(
+      config,
+      economy,
+      networkInputPressure,
+      loanRateAnnual,
+      policyShockAnnual,
+      householdPeriod.consumptionIndex
+    );
     cumulativeBankruptcies += firmPeriod.bankruptcies;
 
     const cpi = computeCpi(economy.firmPrice, economy.firmSector, economy.sectorWeights);
@@ -71,6 +140,12 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
     const producerPriceInflationAnnualized = Math.log(ppi / previousPpi) * 12;
     previousCpi = cpi;
     previousPpi = ppi;
+    previousInflationAnnualized = inflationAnnualized;
+    previousConsumptionIndex = householdPeriod.consumptionIndex;
+
+    const averageWage = computeAveragePositive(economy.wage);
+    const wageGrowthAnnualized = Math.log(averageWage / Math.max(1, previousAverageWage)) * 12;
+    previousAverageWage = averageWage;
 
     const employedHouseholds = countEmployed(economy.employerId);
     const unemploymentRate = 1 - employedHouseholds / config.households;
@@ -103,7 +178,16 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       creditGrowthAnnualized,
       supplyChainStress: firmPeriod.supplyChainStress,
       averageFirmPrice: ppi,
-      sectorPriceDispersion
+      sectorPriceDispersion,
+      consumptionIndex: householdPeriod.consumptionIndex,
+      averageInflationExpectation: householdPeriod.averageInflationExpectation,
+      wageGrowthAnnualized,
+      householdDepositsIndex: householdPeriod.householdDepositsIndex,
+      householdDebtServiceRatio: householdPeriod.householdDebtServiceRatio,
+      handToMouthShare: householdPeriod.ruleMix.handToMouth,
+      liquidityBufferShare: householdPeriod.ruleMix.liquidityBuffer,
+      habitShare: householdPeriod.ruleMix.habit,
+      debtStressShare: householdPeriod.ruleMix.debtStress
     });
   }
 
@@ -144,7 +228,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
         periods: config.periods,
         supplierEdges: economy.supplierNetwork.supplierId.length
       },
-      generatedAt: "deterministic-milestone-1"
+      generatedAt: "deterministic-milestone-2"
     },
     path,
     diagnostics: {
@@ -152,8 +236,13 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       payrollConsistent,
       supplierNetworkConsistent,
       priceIndexConsistent,
+      householdBudgetConsistent,
       accountingChecksPassed:
-        employerWorkerConsistent && payrollConsistent && supplierNetworkConsistent && priceIndexConsistent
+        employerWorkerConsistent &&
+        payrollConsistent &&
+        supplierNetworkConsistent &&
+        priceIndexConsistent &&
+        householdBudgetConsistent
     },
     summary: {
       firmsWithWorkers,
@@ -161,7 +250,15 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       finalInflationAnnualized: finalPoint.inflationAnnualized,
       finalUnemploymentRate: finalPoint.unemploymentRate,
       finalOutputIndex: finalPoint.outputIndex,
-      finalSupplyChainStress: finalPoint.supplyChainStress
+      finalSupplyChainStress: finalPoint.supplyChainStress,
+      finalConsumptionIndex: finalPoint.consumptionIndex,
+      finalAverageInflationExpectation: finalPoint.averageInflationExpectation,
+      finalRuleMix: {
+        handToMouth: finalPoint.handToMouthShare,
+        liquidityBuffer: finalPoint.liquidityBufferShare,
+        habit: finalPoint.habitShare,
+        debtStress: finalPoint.debtStressShare
+      }
     }
   };
 }
@@ -176,6 +273,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const firmLabor = new Int32Array(config.firms);
   const firmBaseLabor = new Int32Array(config.firms);
   const firmWageBill = new Float64Array(config.firms);
+  const firmWageOffer = new Float64Array(config.firms);
+  const firmQuality = new Float32Array(config.firms);
   const firmOutput = new Float64Array(config.firms);
   const firmCash = new Float64Array(config.firms);
   const firmDebt = new Float64Array(config.firms);
@@ -199,21 +298,41 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmWorkingCapitalExposure[f] = 0.12 + rng.nextFloat() * 0.72;
     firmPriceStickiness[f] = 0.18 + rng.nextFloat() * 0.58;
     firmMarkup[f] = 0.08 + rng.nextFloat() * 0.22;
+    firmWageOffer[f] = sectorBaseWage(sector, config.sectors) * (0.96 + rng.nextFloat() * 0.12);
+    firmQuality[f] = 0.65 + rng.nextFloat() * 0.35;
   }
 
   const employerId = new Int32Array(config.households);
   const wage = new Float64Array(config.households);
   const hours = new Float64Array(config.households);
+  const householdBehavior = new Int8Array(config.households);
+  const expectationRule = new Int8Array(config.households);
+  const deposits = new Float64Array(config.households);
+  const debt = new Float64Array(config.households);
+  const consumptionHabit = new Float64Array(config.households);
+  const inflationExpectation = new Float32Array(config.households);
   const unemployedPool: number[] = [];
   const initialUnemploymentRate = config.initialUnemploymentRate ?? 0.06;
+  const behaviorMix = normalizeHouseholdRuleMix(config.householdRuleMix);
+  const expectationMix = normalizeExpectationRuleMix(config.expectationRuleMix);
+  let baselineConsumption = 0;
+  let baselineDeposits = 0;
 
   for (let h = 0; h < config.households; h += 1) {
+    householdBehavior[h] = drawBehaviorType(behaviorMix, rng.nextFloat());
+    expectationRule[h] = drawExpectationType(expectationMix, rng.nextFloat());
+    inflationExpectation[h] = (config.targetInflationAnnual ?? 0.02) + (rng.nextFloat() - 0.5) * 0.012;
+    consumptionHabit[h] = 42 + rng.nextFloat() * 48;
+    deposits[h] = consumptionHabit[h] * (1.5 + rng.nextFloat() * 7.5);
+    debt[h] = rng.nextFloat() < 0.58 ? consumptionHabit[h] * (4 + rng.nextFloat() * 38) : 0;
+    baselineConsumption += consumptionHabit[h];
+    baselineDeposits += deposits[h];
+
     const employed = rng.nextFloat() > initialUnemploymentRate;
     if (employed) {
       const employer = drawFirmId(config.firms, rng);
-      const sector = firmSector[employer];
       employerId[h] = employer;
-      wage[h] = sectorBaseWage(sector, config.sectors) * (0.82 + rng.nextFloat() * 0.42);
+      wage[h] = firmWageOffer[employer] * (0.9 + rng.nextFloat() * 0.18);
       hours[h] = 1;
       firmLabor[employer] += 1;
     } else {
@@ -242,6 +361,12 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     employerId,
     wage,
     hours,
+    householdBehavior,
+    expectationRule,
+    deposits,
+    debt,
+    consumptionHabit,
+    inflationExpectation,
     firmSector,
     firmStage,
     firmBank,
@@ -251,6 +376,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmLabor,
     firmBaseLabor,
     firmWageBill,
+    firmWageOffer,
+    firmQuality,
     firmOutput,
     firmCash,
     firmDebt,
@@ -262,7 +389,105 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     sectorWeights,
     supplierNetwork,
     unemployedPool,
-    layoffCursor
+    layoffCursor,
+    baselineConsumption: Math.max(1, baselineConsumption),
+    baselineDeposits: Math.max(1, baselineDeposits)
+  };
+}
+
+function updateHouseholds(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  previousInflationAnnualized: number,
+  policyRateAnnual: number,
+  loanRateAnnual: number,
+  previousConsumptionIndex: number,
+  rng: ReturnType<typeof createSeededRng>
+): HouseholdPeriod {
+  let totalConsumption = 0;
+  let totalExpectation = 0;
+  let totalDeposits = 0;
+  let totalDebtService = 0;
+  let totalIncome = 0;
+  let budgetConsistent = true;
+  const ruleCounts = { handToMouth: 0, liquidityBuffer: 0, habit: 0, debtStress: 0 };
+  const targetInflation = config.targetInflationAnnual ?? 0.02;
+  const credibility = clamp(config.centralBankCredibility ?? 0.55, 0, 1);
+  const debtServiceSensitivity = config.debtServiceSensitivity ?? 0.42;
+  const switchingIntensity = clamp(config.ruleSwitchingIntensity ?? 0.18, 0, 1);
+
+  for (let h = 0; h < economy.employerId.length; h += 1) {
+    const employer = economy.employerId[h];
+    const wageIncome = employer >= 0 ? economy.wage[h] * economy.hours[h] : economy.consumptionHabit[h] * 0.26;
+    const interestIncome = economy.deposits[h] * Math.max(0, policyRateAnnual - 0.012) / 12;
+    const interestDue = economy.debt[h] * (loanRateAnnual / 12);
+    const principalDue = Math.min(economy.debt[h], economy.debt[h] * 0.004);
+    const debtService = interestDue + principalDue;
+    const expectation = updateInflationExpectation(
+      economy,
+      h,
+      previousInflationAnnualized,
+      targetInflation,
+      credibility,
+      previousConsumptionIndex
+    );
+    economy.inflationExpectation[h] = expectation;
+
+    const incomeBeforeConsumption = economy.deposits[h] + wageIncome + interestIncome - debtService;
+    const debtServiceRatio = debtService / Math.max(1, wageIncome + interestIncome);
+    const consumption = chooseConsumption(
+      economy.householdBehavior[h],
+      incomeBeforeConsumption,
+      economy.deposits[h],
+      economy.debt[h],
+      debtServiceRatio,
+      economy.consumptionHabit[h],
+      expectation,
+      debtServiceSensitivity
+    );
+    const boundedConsumption = clamp(consumption, 0, Math.max(0, incomeBeforeConsumption));
+    const newDeposits = incomeBeforeConsumption - boundedConsumption;
+
+    if (!Number.isFinite(newDeposits) || !Number.isFinite(boundedConsumption) || boundedConsumption < 0) {
+      budgetConsistent = false;
+    }
+
+    economy.deposits[h] = Math.max(0, newDeposits);
+    economy.debt[h] = Math.max(0, economy.debt[h] - principalDue);
+    economy.consumptionHabit[h] = 0.88 * economy.consumptionHabit[h] + 0.12 * boundedConsumption;
+
+    if (rng.nextFloat() < switchingIntensity / 12) {
+      economy.householdBehavior[h] = chooseNextBehavior(
+        economy.householdBehavior[h],
+        debtServiceRatio,
+        economy.deposits[h],
+        economy.consumptionHabit[h],
+        expectation,
+        rng
+      );
+    }
+
+    totalConsumption += boundedConsumption;
+    totalExpectation += expectation;
+    totalDeposits += economy.deposits[h];
+    totalDebtService += debtService;
+    totalIncome += wageIncome + interestIncome;
+    incrementRuleCount(ruleCounts, economy.householdBehavior[h]);
+  }
+
+  const households = economy.employerId.length;
+  return {
+    consumptionIndex: totalConsumption / economy.baselineConsumption,
+    averageInflationExpectation: totalExpectation / households,
+    householdDepositsIndex: totalDeposits / economy.baselineDeposits,
+    householdDebtServiceRatio: totalDebtService / Math.max(1, totalIncome),
+    ruleMix: {
+      handToMouth: ruleCounts.handToMouth / households,
+      liquidityBuffer: ruleCounts.liquidityBuffer / households,
+      habit: ruleCounts.habit / households,
+      debtStress: ruleCounts.debtStress / households
+    },
+    budgetConsistent
   };
 }
 
@@ -270,12 +495,17 @@ function updateLaborMarket(
   config: ScenarioConfig,
   economy: EconomyArrays,
   rng: ReturnType<typeof createSeededRng>,
-  policyShockAnnual: number
+  policyShockAnnual: number,
+  consumptionIndex: number,
+  averageInflationExpectation: number
 ): { hires: number; layoffs: number; vacancies: number } {
   let hires = 0;
   let layoffs = 0;
   let vacancies = 0;
   const firingFriction = clamp(config.firingFriction ?? 0.45, 0, 1);
+  const matchingFriction = clamp(config.matchingFriction ?? 0.35, 0, 0.95);
+  const wageIndexation = clamp(config.wageIndexation ?? 0.28, 0, 1);
+  const demandIndex = clamp(consumptionIndex, 0.65, 1.35);
 
   for (let f = 0; f < config.firms; f += 1) {
     if (economy.firmDefaulted[f] === 1) {
@@ -286,16 +516,19 @@ function updateLaborMarket(
     const baseLabor = economy.firmBaseLabor[f];
     const demandSensitivity = 0.25 + stage * 0.08 + economy.firmWorkingCapitalExposure[f] * 0.18;
     const idiosyncraticDemand = (rng.nextFloat() - 0.5) * 0.035;
-    const desiredLabor = Math.max(
-      1,
-      Math.round(baseLabor * (1 - policyShockAnnual * 2.8 * demandSensitivity + idiosyncraticDemand))
-    );
+    const expectedDemand =
+      0.78 + demandIndex * 0.28 - policyShockAnnual * 2.8 * demandSensitivity + idiosyncraticDemand;
+    const desiredLabor = Math.max(1, Math.round(baseLabor * clamp(expectedDemand, 0.55, 1.45)));
     const currentLabor = economy.firmLabor[f];
+    const laborTightness = economy.unemployedPool.length / Math.max(1, config.households);
+    const wagePressure = wageIndexation * averageInflationExpectation + (0.08 - laborTightness) * 0.015;
+    economy.firmWageOffer[f] *= clamp(1 + wagePressure / 12, 0.985, 1.035);
 
     if (desiredLabor > currentLabor) {
       const firmVacancies = desiredLabor - currentLabor;
       vacancies += firmVacancies;
-      const actualHires = hireWorkers(config, economy, f, firmVacancies, rng);
+      const fillableVacancies = Math.floor(firmVacancies * (1 - matchingFriction) * (0.82 + rng.nextFloat() * 0.28));
+      const actualHires = hireWorkers(economy, f, fillableVacancies, rng);
       hires += actualHires;
     } else if (desiredLabor < currentLabor) {
       const rawLayoffs = currentLabor - desiredLabor;
@@ -313,7 +546,8 @@ function updateFirms(
   economy: EconomyArrays,
   networkInputPressure: Float64Array,
   loanRateAnnual: number,
-  policyShockAnnual: number
+  policyShockAnnual: number,
+  consumptionIndex: number
 ): {
   totalOutput: number;
   bankruptcies: number;
@@ -329,6 +563,7 @@ function updateFirms(
   let stressSum = 0;
   const costChannelStrength = config.costChannelStrength ?? 0.35;
   const inventoryBuffer = config.inventoryBufferMonths ?? 1.5;
+  const demandMultiplier = clamp(0.62 + consumptionIndex * 0.42, 0.62, 1.28);
 
   for (let f = 0; f < config.firms; f += 1) {
     const labor = economy.firmLabor[f];
@@ -336,7 +571,8 @@ function updateFirms(
     const capitalCapacity = Math.pow(economy.firmCapital[f], 0.28);
     const inputStress = clamp(networkInputPressure[f] - 1, -0.35, 0.6);
     const supplyPenalty = Math.max(0.62, 1 - Math.max(0, inputStress) * 0.18);
-    const output = economy.firmProductivity[f] * laborCapacity * capitalCapacity * supplyPenalty;
+    const output =
+      economy.firmProductivity[f] * laborCapacity * capitalCapacity * supplyPenalty * demandMultiplier;
     economy.firmOutput[f] = output;
     totalOutput += output;
 
@@ -351,12 +587,14 @@ function updateFirms(
     const markupPressure = (economy.firmMarkup[f] - 0.15) * 0.003;
     const marginalCostPressure =
       unitLaborCost * 0.02 + inputStress * 0.03 + workingCapitalCost / Math.max(10_000, wageBill + inputCost);
-    const demandPressure = clamp((labor - economy.firmBaseLabor[f]) / Math.max(1, economy.firmBaseLabor[f]), -0.4, 0.4);
+    const laborDemandPressure = clamp((labor - economy.firmBaseLabor[f]) / Math.max(1, economy.firmBaseLabor[f]), -0.4, 0.4);
+    const householdDemandPressure = clamp(consumptionIndex - 1, -0.45, 0.45);
     const desiredMonthlyPriceChange =
       0.0011 +
       markupPressure +
       marginalCostPressure * (0.8 + costChannelStrength) +
-      demandPressure * 0.012 +
+      laborDemandPressure * 0.008 +
+      householdDemandPressure * 0.012 +
       policyShockAnnual * costChannelStrength * economy.firmWorkingCapitalExposure[f] * 0.055;
     const adjustmentShare = 1 - economy.firmPriceStickiness[f];
     economy.firmPrice[f] *= clamp(1 + desiredMonthlyPriceChange * adjustmentShare, 0.965, 1.055);
@@ -393,14 +631,12 @@ function updateFirms(
 }
 
 function hireWorkers(
-  config: ScenarioConfig,
   economy: EconomyArrays,
   firm: number,
   vacancies: number,
   rng: ReturnType<typeof createSeededRng>
 ): number {
   let hires = 0;
-  const sector = economy.firmSector[firm];
   while (hires < vacancies && economy.unemployedPool.length > 0) {
     const worker = economy.unemployedPool.pop();
     if (worker === undefined || economy.employerId[worker] !== -1) {
@@ -408,7 +644,7 @@ function hireWorkers(
     }
     economy.employerId[worker] = firm;
     economy.hours[worker] = 1;
-    economy.wage[worker] = sectorBaseWage(sector, config.sectors) * (0.86 + rng.nextFloat() * 0.34);
+    economy.wage[worker] = economy.firmWageOffer[firm] * (0.9 + rng.nextFloat() * 0.2) * economy.firmQuality[firm];
     economy.firmLabor[firm] += 1;
     hires += 1;
   }
@@ -438,6 +674,94 @@ function layoffWorkers(config: ScenarioConfig, economy: EconomyArrays, firm: num
 
   economy.layoffCursor[firm] = index;
   return actual;
+}
+
+function updateInflationExpectation(
+  economy: EconomyArrays,
+  household: number,
+  previousInflationAnnualized: number,
+  targetInflation: number,
+  credibility: number,
+  previousConsumptionIndex: number
+): number {
+  const oldExpectation = economy.inflationExpectation[household];
+  const employer = economy.employerId[household];
+  const employerSignal = employer >= 0 ? (economy.firmPrice[employer] - 1) * 0.05 : 0;
+  const demandSignal = (previousConsumptionIndex - 1) * 0.025;
+  let next = oldExpectation;
+
+  switch (economy.expectationRule[household]) {
+    case Expectation.Adaptive:
+      next = 0.68 * oldExpectation + 0.32 * previousInflationAnnualized;
+      break;
+    case Expectation.Anchored:
+      next = credibility * targetInflation + (1 - credibility) * (0.72 * oldExpectation + 0.28 * previousInflationAnnualized);
+      break;
+    case Expectation.Extrapolative:
+      next = previousInflationAnnualized + 0.32 * (previousInflationAnnualized - oldExpectation);
+      break;
+    case Expectation.EmployerSector:
+      next = 0.62 * oldExpectation + 0.28 * previousInflationAnnualized + employerSignal + demandSignal;
+      break;
+  }
+
+  return clamp(next, -0.05, 0.18);
+}
+
+function chooseConsumption(
+  behavior: number,
+  available: number,
+  deposits: number,
+  debt: number,
+  debtServiceRatio: number,
+  habit: number,
+  expectation: number,
+  debtServiceSensitivity: number
+): number {
+  if (available <= 0) {
+    return 0;
+  }
+
+  switch (behavior) {
+    case Behavior.HandToMouth:
+      return available * clamp(0.9 + expectation * 0.7, 0.78, 0.97);
+    case Behavior.LiquidityBuffer: {
+      const targetBuffer = habit * 6;
+      const bufferGap = clamp((targetBuffer - deposits) / Math.max(1, targetBuffer), -0.5, 1);
+      return available * clamp(0.68 - bufferGap * 0.22 - expectation * 0.35, 0.36, 0.78);
+    }
+    case Behavior.Habit:
+      return clamp(habit * (0.92 + expectation * 0.8), available * 0.35, available * 0.9);
+    case Behavior.DebtStress: {
+      const stressCut = debtServiceSensitivity * debtServiceRatio + Math.min(0.18, debt / Math.max(1, deposits + habit * 12) * 0.025);
+      return available * clamp(0.74 - stressCut, 0.28, 0.78);
+    }
+    default:
+      return available * 0.7;
+  }
+}
+
+function chooseNextBehavior(
+  currentBehavior: number,
+  debtServiceRatio: number,
+  deposits: number,
+  habit: number,
+  expectation: number,
+  rng: ReturnType<typeof createSeededRng>
+): number {
+  if (debtServiceRatio > 0.24) {
+    return Behavior.DebtStress;
+  }
+  if (deposits < habit * 1.25) {
+    return Behavior.HandToMouth;
+  }
+  if (deposits < habit * 4 || expectation > 0.045) {
+    return Behavior.LiquidityBuffer;
+  }
+  if (rng.nextFloat() < 0.18) {
+    return currentBehavior;
+  }
+  return Behavior.Habit;
 }
 
 function recomputePayroll(economy: Pick<EconomyArrays, "employerId" | "wage" | "hours" | "firmWageBill">): void {
@@ -488,8 +812,14 @@ function computeNetworkInputPressure(economy: EconomyArrays): Float64Array {
   const pressure = new Float64Array(economy.firmPrice.length);
   for (let buyer = 0; buyer < economy.firmPrice.length; buyer += 1) {
     let weightedPrice = 0;
-    for (let edge = economy.supplierNetwork.supplierPtr[buyer]; edge < economy.supplierNetwork.supplierPtr[buyer + 1]; edge += 1) {
-      weightedPrice += economy.firmPrice[economy.supplierNetwork.supplierId[edge]] * economy.supplierNetwork.contractWeight[edge];
+    for (
+      let edge = economy.supplierNetwork.supplierPtr[buyer];
+      edge < economy.supplierNetwork.supplierPtr[buyer + 1];
+      edge += 1
+    ) {
+      weightedPrice +=
+        economy.firmPrice[economy.supplierNetwork.supplierId[edge]] *
+        economy.supplierNetwork.contractWeight[edge];
     }
     pressure[buyer] = weightedPrice > 0 ? weightedPrice : 1;
   }
@@ -515,12 +845,12 @@ function computeCpi(firmPrice: Float64Array, firmSector: Int16Array, sectorWeigh
   return index;
 }
 
-function computePotentialOutput(economy: EconomyArrays): number {
+function computePotentialOutput(economy: EconomyArrays, consumptionIndex: number): number {
   let total = 0;
   for (let f = 0; f < economy.firmOutput.length; f += 1) {
     const laborCapacity = Math.pow(economy.firmLabor[f] + 1, 0.62);
     const capitalCapacity = Math.pow(economy.firmCapital[f], 0.28);
-    total += economy.firmProductivity[f] * laborCapacity * capitalCapacity;
+    total += economy.firmProductivity[f] * laborCapacity * capitalCapacity * consumptionIndex;
   }
   return total;
 }
@@ -563,12 +893,84 @@ function computeSectorPriceDispersion(firmPrice: Float64Array, firmSector: Int16
   return Math.sqrt(variance / sectors);
 }
 
+function normalizeHouseholdRuleMix(mix: HouseholdRuleMix | undefined): HouseholdRuleMix {
+  const raw = mix ?? { handToMouth: 0.35, liquidityBuffer: 0.3, habit: 0.2, debtStress: 0.15 };
+  const sum = raw.handToMouth + raw.liquidityBuffer + raw.habit + raw.debtStress || 1;
+  return {
+    handToMouth: raw.handToMouth / sum,
+    liquidityBuffer: raw.liquidityBuffer / sum,
+    habit: raw.habit / sum,
+    debtStress: raw.debtStress / sum
+  };
+}
+
+function normalizeExpectationRuleMix(mix: ExpectationRuleMix | undefined): ExpectationRuleMix {
+  const raw = mix ?? { adaptive: 0.48, anchored: 0.32, extrapolative: 0.1, employerSector: 0.1 };
+  const sum = raw.adaptive + raw.anchored + raw.extrapolative + raw.employerSector || 1;
+  return {
+    adaptive: raw.adaptive / sum,
+    anchored: raw.anchored / sum,
+    extrapolative: raw.extrapolative / sum,
+    employerSector: raw.employerSector / sum
+  };
+}
+
+function drawBehaviorType(mix: HouseholdRuleMix, draw: number): number {
+  if (draw < mix.handToMouth) {
+    return Behavior.HandToMouth;
+  }
+  if (draw < mix.handToMouth + mix.liquidityBuffer) {
+    return Behavior.LiquidityBuffer;
+  }
+  if (draw < mix.handToMouth + mix.liquidityBuffer + mix.habit) {
+    return Behavior.Habit;
+  }
+  return Behavior.DebtStress;
+}
+
+function drawExpectationType(mix: ExpectationRuleMix, draw: number): number {
+  if (draw < mix.adaptive) {
+    return Expectation.Adaptive;
+  }
+  if (draw < mix.adaptive + mix.anchored) {
+    return Expectation.Anchored;
+  }
+  if (draw < mix.adaptive + mix.anchored + mix.extrapolative) {
+    return Expectation.Extrapolative;
+  }
+  return Expectation.EmployerSector;
+}
+
+function incrementRuleCount(ruleCounts: { handToMouth: number; liquidityBuffer: number; habit: number; debtStress: number }, behavior: number): void {
+  if (behavior === Behavior.HandToMouth) {
+    ruleCounts.handToMouth += 1;
+  } else if (behavior === Behavior.LiquidityBuffer) {
+    ruleCounts.liquidityBuffer += 1;
+  } else if (behavior === Behavior.Habit) {
+    ruleCounts.habit += 1;
+  } else {
+    ruleCounts.debtStress += 1;
+  }
+}
+
 function computeAverage(values: Float64Array): number {
   let sum = 0;
   for (const value of values) {
     sum += value;
   }
   return sum / values.length;
+}
+
+function computeAveragePositive(values: Float64Array): number {
+  let sum = 0;
+  let count = 0;
+  for (const value of values) {
+    if (value > 0) {
+      sum += value;
+      count += 1;
+    }
+  }
+  return count > 0 ? sum / count : 1;
 }
 
 function countEmployed(employerId: Int32Array): number {
@@ -632,7 +1034,7 @@ function validateScenarioConfig(config: ScenarioConfig): void {
     throw new Error("Scenario periods must be positive.");
   }
   if (config.households < config.firms) {
-    throw new Error("Scenario must have at least as many households as firms for the Milestone 1 labor market.");
+    throw new Error("Scenario must have at least as many households as firms for the Milestone 2 labor market.");
   }
 }
 

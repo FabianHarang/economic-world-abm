@@ -17,3 +17,12 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added a 1,000,000-household research-scale target config in TypeScript and YAML.
 - Reframed the site language around the inflation-interest-rate relationship in a large ABM.
 - Replaced the toy path generator with a first structural TypeScript ABM core: employer-worker links, hiring/firing, sector/stage firms, supplier network, loan-rate pass-through, firm prices, and CPI inflation.
+
+## 0.3.0 - 2026-06-18
+
+- Added Milestone 2 household behavior rules: hand-to-mouth, liquidity-buffer, habit, and debt-stress.
+- Added expectation rules: adaptive, anchored, extrapolative, and employer-sector.
+- Added household deposits, debt, consumption habits, debt service, consumption demand, and rule switching.
+- Added firm wage offers, matching friction, wage indexation, and demand-sensitive labor updates.
+- Added browser controls for household rule composition and expectation/labor parameters.
+- Added household-budget diagnostics and result paths for consumption, expectations, wage growth, and rule shares.

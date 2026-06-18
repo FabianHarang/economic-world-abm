@@ -1,5 +1,19 @@
 export type EconomyContext = "Norway" | "EU_Euro_area" | "Norway_EU_comparison" | "stylized";
 
+export interface HouseholdRuleMix {
+  readonly handToMouth: number;
+  readonly liquidityBuffer: number;
+  readonly habit: number;
+  readonly debtStress: number;
+}
+
+export interface ExpectationRuleMix {
+  readonly adaptive: number;
+  readonly anchored: number;
+  readonly extrapolative: number;
+  readonly employerSector: number;
+}
+
 export interface ScenarioConfig {
   readonly scenarioName: string;
   readonly modelVersion: string;
@@ -17,8 +31,16 @@ export interface ScenarioConfig {
   readonly initialUnemploymentRate?: number;
   readonly supplierEdgesPerFirm?: number;
   readonly firingFriction?: number;
+  readonly matchingFriction?: number;
+  readonly wageIndexation?: number;
   readonly costChannelStrength?: number;
   readonly inventoryBufferMonths?: number;
+  readonly householdRuleMix?: HouseholdRuleMix;
+  readonly expectationRuleMix?: ExpectationRuleMix;
+  readonly ruleSwitchingIntensity?: number;
+  readonly centralBankCredibility?: number;
+  readonly targetInflationAnnual?: number;
+  readonly debtServiceSensitivity?: number;
 }
 
 export interface SimulationMetadata {
@@ -57,6 +79,15 @@ export interface SimulationPoint {
   readonly supplyChainStress: number;
   readonly averageFirmPrice: number;
   readonly sectorPriceDispersion: number;
+  readonly consumptionIndex: number;
+  readonly averageInflationExpectation: number;
+  readonly wageGrowthAnnualized: number;
+  readonly householdDepositsIndex: number;
+  readonly householdDebtServiceRatio: number;
+  readonly handToMouthShare: number;
+  readonly liquidityBufferShare: number;
+  readonly habitShare: number;
+  readonly debtStressShare: number;
 }
 
 export interface SimulationResult {
@@ -67,6 +98,7 @@ export interface SimulationResult {
     readonly payrollConsistent: boolean;
     readonly supplierNetworkConsistent: boolean;
     readonly priceIndexConsistent: boolean;
+    readonly householdBudgetConsistent: boolean;
     readonly accountingChecksPassed: boolean;
   };
   readonly summary: {
@@ -76,12 +108,15 @@ export interface SimulationResult {
     readonly finalUnemploymentRate: number;
     readonly finalOutputIndex: number;
     readonly finalSupplyChainStress: number;
+    readonly finalConsumptionIndex: number;
+    readonly finalAverageInflationExpectation: number;
+    readonly finalRuleMix: HouseholdRuleMix;
   };
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_1_browser_100k",
-  modelVersion: "0.2.0",
+  scenarioName: "milestone_2_browser_100k",
+  modelVersion: "0.3.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,
@@ -96,8 +131,26 @@ export const firstStructuralDemoConfig: ScenarioConfig = {
   initialUnemploymentRate: 0.06,
   supplierEdgesPerFirm: 5,
   firingFriction: 0.45,
+  matchingFriction: 0.35,
+  wageIndexation: 0.28,
   costChannelStrength: 0.35,
-  inventoryBufferMonths: 1.5
+  inventoryBufferMonths: 1.5,
+  householdRuleMix: {
+    handToMouth: 0.35,
+    liquidityBuffer: 0.3,
+    habit: 0.2,
+    debtStress: 0.15
+  },
+  expectationRuleMix: {
+    adaptive: 0.48,
+    anchored: 0.32,
+    extrapolative: 0.1,
+    employerSector: 0.1
+  },
+  ruleSwitchingIntensity: 0.18,
+  centralBankCredibility: 0.55,
+  targetInflationAnnual: 0.02,
+  debtServiceSensitivity: 0.42
 };
 
 export const researchScaleMilestoneConfig: ScenarioConfig = {
