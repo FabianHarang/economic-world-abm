@@ -1,0 +1,33 @@
+profile: local_m4_36gb
+description: "Conservative local profile for Fabian's MacBook Pro with Apple M4 and 36 GB unified memory."
+memory:
+  physical_gb: 36
+  default_cap_gb: 24
+  cap_environment_variable: WORLD_ABM_MAX_MEMORY_GB
+threads:
+  default: auto
+  environment_variable: WORLD_ABM_THREADS
+run_tiers:
+  toy_browser:
+    households: [1000, 10000]
+    firms: [50, 300]
+    banks: [3, 20]
+  browser_medium:
+    households: [10000, 100000]
+    firms: [300, 2000]
+    banks: [10, 50]
+  local_dev:
+    households: [50000, 200000]
+    firms: [500, 2000]
+    banks: [10, 25]
+  local_large:
+    households: [500000, 1000000]
+    firms: [2000, 5000]
+    banks: [25, 50]
+    gate: "Run estimate_memory.py first and require projected memory below cap."
+  external_research:
+    households: [1000000, 10000000]
+    firms: [5000, 50000]
+    banks: [25, 100]
+    gate: "Requires explicit compute plan and Fabian approval before paid resources."
+

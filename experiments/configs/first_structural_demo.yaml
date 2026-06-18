@@ -1,0 +1,67 @@
+schema_version: 0.1.0
+scenario_name: first_structural_demo
+description: >
+  First structurally faithful demonstration run: 10,000 households, 300 firms,
+  12 sectors, 10 private banks, explicit employer-worker links, simple supplier
+  network, adaptive expectations, and a one-time +100 bps policy-rate shock.
+economy_context:
+  primary: Norway
+  secondary: EU_Euro_area
+  calibration_status: stylized_norway_first
+  notes:
+    - Norway is the first empirical calibration target.
+    - EU / Euro area comparison follows after Norway-specific assumptions are documented.
+    - All current values are stylized placeholders until data-source notes are added.
+scale:
+  households: 10000
+  firms: 300
+  banks: 10
+  sectors: 12
+  periods: 96
+  period_unit: month
+  reporting_unit: quarter
+seed_policy:
+  master_seed: 20260618
+  paired_counterfactual: true
+  rng_algorithm: project_seeded_rng
+policy:
+  baseline_policy_rate_annual: 0.04
+  treatment_shock_bps: 100
+  treatment_start_period: 3
+  treatment_duration_periods: 12
+  loan_rate_pass_through: 0.65
+  mortgage_rate_pass_through: 0.75
+  deposit_rate_pass_through: 0.45
+behavior:
+  household_rule_mix:
+    hand_to_mouth: 0.35
+    liquidity_buffer: 0.30
+    habit: 0.20
+    debt_stress: 0.15
+  expectation_rule_mix:
+    adaptive: 0.55
+    anchored_target: 0.30
+    employer_sector: 0.15
+firms:
+  cost_channel_strength: 0.35
+  average_price_stickiness_months: 4
+  inventory_buffer_months: 1.5
+  supplier_concentration: medium
+labor_market:
+  firing_friction: medium
+  matching_friction: medium
+  wage_indexation: 0.25
+outputs:
+  include_paths:
+    - inflation
+    - output
+    - unemployment
+    - vacancies
+    - layoffs
+    - bankruptcies
+    - credit_growth
+    - sectoral_prices
+    - supply_chain_stress
+  monte_carlo_seeds: 20
+  store_microstate: false
+

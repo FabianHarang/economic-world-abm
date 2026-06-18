@@ -1,0 +1,105 @@
+@import "./amor-tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--amor-paper);
+  color: var(--amor-ink);
+  font-family: var(--amor-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: var(--amor-teal);
+  text-underline-offset: 0.2em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  box-shadow: var(--amor-focus-ring);
+  outline: none;
+}
+
+.amor-page {
+  min-height: 100vh;
+  background: var(--amor-paper);
+}
+
+.amor-shell {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 0 var(--amor-space-6);
+}
+
+.amor-kicker {
+  color: var(--amor-teal);
+  font-family: var(--amor-font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.amor-wordmark {
+  color: inherit;
+  font-family: var(--amor-font-display);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-indent: 0.18em;
+}
+
+.amor-button {
+  align-items: center;
+  background: var(--amor-petrol);
+  border: 1px solid var(--amor-petrol);
+  border-radius: var(--amor-radius-sm);
+  color: var(--amor-paper-pure);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 600;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.amor-button.secondary {
+  background: transparent;
+  color: var(--amor-petrol);
+}
+
+.amor-panel {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+}
+
+.model-warning {
+  background: rgb(224 164 88 / 16%);
+  border: 1px solid rgb(198 134 58 / 38%);
+  border-radius: var(--amor-radius-md);
+  color: var(--amor-ink);
+  padding: var(--amor-space-4);
+}
+
+@media (max-width: 760px) {
+  .amor-shell {
+    padding: 0 var(--amor-space-4);
+  }
+}
+

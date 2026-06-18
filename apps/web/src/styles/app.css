@@ -1,0 +1,292 @@
+.hero {
+  background: var(--amor-petrol-deep);
+  color: var(--amor-paper-pure);
+  min-height: 82vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-backdrop {
+  background-image:
+    linear-gradient(90deg, rgb(7 42 47 / 92%), rgb(7 42 47 / 68%)),
+    url("/economic-world-abm/amor/network-cover.svg");
+  background-position: center;
+  background-size: cover;
+  inset: 0;
+  opacity: 0.94;
+  position: absolute;
+}
+
+.hero-content {
+  padding-bottom: var(--amor-space-8);
+  padding-top: var(--amor-space-5);
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--amor-space-8);
+}
+
+.brand-lockup {
+  align-items: center;
+  display: inline-flex;
+  gap: 14px;
+}
+
+.brand-lockup img {
+  height: 46px;
+  width: 46px;
+}
+
+.repo-label {
+  color: rgb(246 244 238 / 78%);
+  font-family: var(--amor-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.hero-grid {
+  align-items: end;
+  display: grid;
+  gap: var(--amor-space-7);
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+}
+
+.hero-grid > *,
+.results-grid > *,
+.metric-grid > *,
+.work-grid > * {
+  min-width: 0;
+}
+
+.hero-copy h1 {
+  color: var(--amor-paper-pure);
+  font-family: var(--amor-font-display);
+  font-size: clamp(2.6rem, 7vw, 5.7rem);
+  letter-spacing: 0;
+  line-height: 0.96;
+  margin: var(--amor-space-4) 0 var(--amor-space-5);
+  max-width: 980px;
+}
+
+.hero-lede {
+  color: rgb(246 244 238 / 82%);
+  font-size: 1.1rem;
+  line-height: 1.65;
+  max-width: 780px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--amor-space-3);
+  margin-top: var(--amor-space-6);
+}
+
+.hero-actions .secondary {
+  border-color: rgb(246 244 238 / 54%);
+  color: var(--amor-paper-pure);
+}
+
+.hero-snapshot {
+  background: rgb(251 250 246 / 93%);
+  color: var(--amor-ink);
+  padding: var(--amor-space-5);
+}
+
+.snapshot-title {
+  color: var(--amor-teal);
+  display: block;
+  font-family: var(--amor-font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.13em;
+  margin-bottom: var(--amor-space-4);
+  text-transform: uppercase;
+}
+
+.hero-snapshot dl {
+  display: grid;
+  gap: var(--amor-space-3);
+  margin: 0;
+}
+
+.hero-snapshot div {
+  border-top: 1px solid var(--amor-line);
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--amor-space-3);
+}
+
+.hero-snapshot dt {
+  color: var(--amor-slate);
+}
+
+.hero-snapshot dd {
+  color: var(--amor-ink);
+  font-weight: 700;
+  margin: 0;
+}
+
+.status-band {
+  padding: var(--amor-space-5) 0;
+}
+
+.content-section {
+  padding: var(--amor-space-8) var(--amor-space-6);
+}
+
+.section-heading {
+  margin-bottom: var(--amor-space-5);
+}
+
+.section-heading h2,
+.results-grid h2 {
+  color: var(--amor-ink);
+  font-family: var(--amor-font-display);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  letter-spacing: 0;
+  line-height: 1;
+  margin: var(--amor-space-2) 0 0;
+}
+
+.metric-grid,
+.work-grid {
+  display: grid;
+  gap: var(--amor-space-4);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-tile,
+.work-grid article {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  padding: var(--amor-space-5);
+}
+
+.metric-label {
+  color: var(--amor-slate);
+  font-family: var(--amor-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.metric-tile strong {
+  color: var(--amor-petrol);
+  display: block;
+  font-family: var(--amor-font-display);
+  font-size: 1.8rem;
+  margin: var(--amor-space-3) 0 var(--amor-space-2);
+  overflow-wrap: anywhere;
+}
+
+.metric-tile span,
+.work-grid p,
+.results-grid p,
+.metadata-list,
+.final-metric {
+  color: var(--amor-ink-soft);
+  line-height: 1.65;
+}
+
+.results-section {
+  background: var(--amor-mist);
+  border-bottom: 1px solid var(--amor-line);
+  border-top: 1px solid var(--amor-line);
+  padding: var(--amor-space-8) 0;
+}
+
+.results-grid {
+  align-items: center;
+  display: grid;
+  gap: var(--amor-space-7);
+  grid-template-columns: minmax(280px, 0.8fr) minmax(320px, 1.2fr);
+}
+
+.metadata-list {
+  font-family: var(--amor-font-mono);
+  font-size: 0.86rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding-left: 1.1rem;
+}
+
+.metadata-list li {
+  overflow-wrap: anywhere;
+}
+
+.path-chart {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  margin: 0;
+  padding: var(--amor-space-4);
+}
+
+.path-chart svg {
+  display: block;
+  width: 100%;
+}
+
+.path-chart line {
+  stroke: var(--amor-line);
+  stroke-width: 1;
+}
+
+.path-chart polyline {
+  fill: none;
+  stroke: var(--amor-teal);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.path-chart circle {
+  fill: var(--amor-amber);
+}
+
+.path-chart figcaption {
+  color: var(--amor-slate);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: var(--amor-space-3);
+}
+
+.work-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.work-grid h3 {
+  color: var(--amor-petrol);
+  font-family: var(--amor-font-display);
+  margin: 0 0 var(--amor-space-2);
+}
+
+.final-metric {
+  margin-top: var(--amor-space-5);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+  }
+
+  .hero-grid,
+  .results-grid,
+  .metric-grid,
+  .work-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--amor-space-3);
+    margin-bottom: var(--amor-space-6);
+  }
+}

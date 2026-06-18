@@ -1,0 +1,47 @@
+schema_version: 0.1.0
+scenario_name: research_scale_baseline
+description: >
+  Target research-scale baseline configuration for the offline engine. This
+  config is a benchmark target, not a default CI or browser run.
+economy_context:
+  primary: Norway
+  secondary: EU_Euro_area
+  calibration_status: staged
+  assumption_policy:
+    - Norway-specific data sources should be preferred for labor, debt, mortgage pass-through, and sector employment.
+    - EU / Euro area input-output and monetary-transmission assumptions may be used as comparison or fallback only when documented.
+    - Combined Norway + EU scenarios must state which parameters are national, regional, or stylized.
+scale:
+  households: 1000000
+  firms: 5000
+  banks: 25
+  sectors: 25
+  periods: 120
+  supplier_edges_target: 75000
+  period_unit: month
+seed_policy:
+  master_seed: 12345
+  rng_algorithm: project_seeded_rng
+memory:
+  profile: local_m4_36gb
+  max_memory_gb_env: WORLD_ABM_MAX_MEMORY_GB
+  default_max_memory_gb: 24
+  require_memory_estimate_before_run: true
+policy:
+  baseline_policy_rate_annual: 0.04
+  regime: fixed_path
+outputs:
+  aggregate_time_series: true
+  sector_time_series: true
+  distribution_summaries: true
+  network_summary_metrics: true
+  representative_micro_traces: false
+  raw_microstate: false
+diagnostics:
+  employer_worker_consistency: required
+  payroll_consistency: required
+  bank_balance_sheet: required
+  firm_cashflow: required
+  household_budget: required
+  production_network_edges: required
+
