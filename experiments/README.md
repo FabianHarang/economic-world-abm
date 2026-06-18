@@ -6,7 +6,7 @@ Large raw outputs must not be committed to git. Curated small static artifacts f
 
 ## First Configs
 
-- `configs/first_structural_demo.yaml`: 10,000-household paired counterfactual demo target.
+- `configs/first_structural_demo.yaml`: 100,000-household Milestone 1 browser demo target.
 - `configs/research_scale_baseline.yaml`: 1,000,000-household offline benchmark target.
 
 ## Economy Priority
@@ -14,4 +14,3 @@ Large raw outputs must not be committed to git. Curated small static artifacts f
 1. Norway.
 2. EU / Euro area.
 3. Norway + EU comparison once assumptions are documented.
-

@@ -57,3 +57,41 @@ export function checkPayrollConsistency(state: PayrollState, tolerance = 1e-8): 
   return true;
 }
 
+export interface SupplierNetworkState {
+  readonly supplierPtr: Int32Array;
+  readonly supplierId: Int32Array;
+  readonly buyerId: Int32Array;
+  readonly firmCount: number;
+}
+
+export function checkSupplierNetworkConsistency(state: SupplierNetworkState): boolean {
+  if (state.supplierPtr.length !== state.firmCount + 1) {
+    return false;
+  }
+  if (state.supplierPtr[0] !== 0) {
+    return false;
+  }
+  if (state.supplierPtr[state.supplierPtr.length - 1] !== state.supplierId.length) {
+    return false;
+  }
+  if (state.supplierId.length !== state.buyerId.length) {
+    return false;
+  }
+
+  for (let firm = 0; firm < state.firmCount; firm += 1) {
+    const start = state.supplierPtr[firm];
+    const end = state.supplierPtr[firm + 1];
+    if (start > end) {
+      return false;
+    }
+    for (let edge = start; edge < end; edge += 1) {
+      const supplier = state.supplierId[edge];
+      const buyer = state.buyerId[edge];
+      if (buyer !== firm || supplier < 0 || supplier >= state.firmCount) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}

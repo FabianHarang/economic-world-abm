@@ -27,9 +27,9 @@ export function PathChart({ path }: PathChartProps) {
         ))}
       </svg>
       <figcaption>
-        Scaffold path from the deterministic TypeScript core. This is a model-plumbing check, not an economic result.
+        Inflation path from the deterministic Milestone 1 TypeScript core. This remains a stylized architecture run, not
+        a calibrated Norway/EU result.
       </figcaption>
     </figure>
   );
 }
-

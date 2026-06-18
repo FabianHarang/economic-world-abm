@@ -1,5 +1,4 @@
-import { firstStructuralDemoConfig, runSimulation } from "@world-abm/core";
-import { amorTheme } from "@world-abm/ui";
+import { firstStructuralDemoConfig, researchScaleMilestoneConfig, runSimulation } from "@world-abm/core";
 import { MetricTile } from "./components/MetricTile";
 import { PathChart } from "./components/PathChart";
 
@@ -23,11 +22,11 @@ export function App() {
           <div className="hero-grid">
             <div className="hero-copy">
               <p className="amor-kicker">Computational laboratory</p>
-              <h1>Large-scale economic world ABM for monetary-policy counterfactuals</h1>
+              <h1>Large ABM laboratory for inflation and interest rates</h1>
               <p className="hero-lede">
-                A heterogeneous-agent model with households, firms, banks, employer-worker links, and production
-                networks. The goal is to test when rate increases lower inflation, when effects are delayed, and when
-                cost channels or supply-chain stress can dominate.
+                We use a large heterogeneous-agent ABM to study the inflation-interest-rate relationship across
+                households, firms, banks, employer-worker links, and production networks. Browser runs are reduced-scale;
+                million-household runs are treated as offline research-scale experiments.
               </p>
               <div className="hero-actions">
                 <a className="amor-button" href="#scaffold-status">
@@ -40,7 +39,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">First structural demo target</span>
+              <span className="snapshot-title">Milestone 1 browser run</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -58,6 +57,10 @@ export function App() {
                   <dt>Primary economy</dt>
                   <dd>{firstStructuralDemoConfig.economyContext}</dd>
                 </div>
+                <div>
+                  <dt>Research target</dt>
+                  <dd>{researchScaleMilestoneConfig.households.toLocaleString()}</dd>
+                </div>
               </dl>
             </aside>
           </div>
@@ -68,7 +71,7 @@ export function App() {
         <div className="amor-shell">
           <div className="model-warning">
             This is a model-generated counterfactual laboratory, not a forecast and not policy advice. Early scaffold
-            charts verify architecture and reproducibility; economic claims require calibrated scenarios, paired seeds,
+            charts verify architecture and reproducibility. Economic claims require Norway/EU calibration, paired seeds,
             sensitivity analysis, and documented limitations.
           </div>
         </div>
@@ -76,31 +79,32 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 0</p>
-          <h2>Foundation status</h2>
+          <p className="amor-kicker">Milestone 1</p>
+          <h2>Structural ABM status</h2>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Design source" value="AMOR" detail="Approved assets and tokens integrated" />
-          <MetricTile label="Calibration path" value="Norway" detail="EU / Euro area follows as documented comparison" />
-          <MetricTile label="Diagnostics" value="Passing" detail="Employer-worker and payroll invariants active" />
-          <MetricTile label="Theme primary" value={amorTheme.color.petrol} detail="Petroleum, teal, sand, paper" />
+          <MetricTile label="Browser households" value={firstStructuralDemoConfig.households.toLocaleString()} detail="Typed-array Milestone 1 run" />
+          <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline/local-large target config" />
+          <MetricTile label="Supplier edges" value={result.summary.supplierEdges.toLocaleString()} detail="Explicit directed firm network" />
+          <MetricTile label="Diagnostics" value="Passing" detail="Worker, payroll, network, and CPI checks" />
         </div>
       </section>
 
       <section className="results-section">
         <div className="amor-shell results-grid">
           <div>
-            <p className="amor-kicker">Seeded scaffold result</p>
+            <p className="amor-kicker">Seeded Milestone 1 result</p>
             <h2>Metadata before conclusions</h2>
             <p>
-              Every future chart must carry model version, scenario, parameter hash, seed policy, scale, and generated
-              date. The values below are deliberately shown before any interpretation.
+              The current browser run is a stylized 100,000-household ABM. It is large enough to test architecture,
+              employer-worker consistency, production-network plumbing, and CPI construction before Norway/EU calibration.
             </p>
             <ul className="metadata-list">
               <li>Model version: {result.metadata.modelVersion}</li>
               <li>Scenario: {result.metadata.scenarioName}</li>
               <li>Parameter hash: {result.metadata.parameterHash}</li>
               <li>Seed policy: {result.metadata.seedPolicy}</li>
+              <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
               <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
             </ul>
           </div>
@@ -111,28 +115,28 @@ export function App() {
       <section className="amor-shell content-section">
         <div className="section-heading">
           <p className="amor-kicker">Next build target</p>
-          <h2>From scaffold to structural ABM</h2>
+          <h2>Deepen the Milestone 1 economy</h2>
         </div>
         <div className="work-grid">
           <article>
-            <h3>Employer-worker engine</h3>
-            <p>Hiring, firing, vacancies, layoffs, and payroll flows must update households and firms consistently.</p>
+            <h3>Labor market</h3>
+            <p>Hiring, firing, vacancies, layoffs, and payroll now update exact household employer ids.</p>
           </article>
           <article>
             <h3>Production network</h3>
-            <p>Firms need sector/stage assignments, supplier contracts, input inventories, and bottleneck diagnostics.</p>
+            <p>Firms now have sector/stage assignments, supplier contracts, and input-cost propagation.</p>
           </article>
           <article>
-            <h3>Paired counterfactuals</h3>
-            <p>Baseline and treatment runs must share shocks so rate-hike effects are estimated by paired differences.</p>
+            <h3>Research scale</h3>
+            <p>The next engine pass should move the 1,000,000-household target out of the browser and into offline runs.</p>
           </article>
         </div>
         <p className="final-metric">
-          Final scaffold unemployment path ends at {(finalPoint.unemploymentRate * 100).toFixed(2)} percent in the
-          deterministic plumbing run.
+          Final Milestone 1 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
+          unemployment {(finalPoint.unemploymentRate * 100).toFixed(2)} percent, output index{" "}
+          {finalPoint.outputIndex.toFixed(1)}.
         </p>
       </section>
     </main>
   );
 }
-

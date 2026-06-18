@@ -1,9 +1,11 @@
 schema_version: 0.1.0
-scenario_name: first_structural_demo
+scenario_name: milestone_1_browser_100k
 description: >
-  First structurally faithful demonstration run: 10,000 households, 300 firms,
-  12 sectors, 10 private banks, explicit employer-worker links, simple supplier
-  network, adaptive expectations, and a one-time +100 bps policy-rate shock.
+  First structurally faithful browser-scale demonstration run: 100,000 households,
+  1,000 firms, 20 sectors, 25 private banks, explicit employer-worker links,
+  a directed supplier network, adaptive expectations, and a one-time +100 bps
+  policy-rate shock. This is still a reduced-scale browser run; the 1,000,000
+  household target belongs to the offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -13,11 +15,12 @@ economy_context:
     - EU / Euro area comparison follows after Norway-specific assumptions are documented.
     - All current values are stylized placeholders until data-source notes are added.
 scale:
-  households: 10000
-  firms: 300
-  banks: 10
-  sectors: 12
+  households: 100000
+  firms: 1000
+  banks: 25
+  sectors: 20
   periods: 96
+  supplier_edges_target: 5000
   period_unit: month
   reporting_unit: quarter
 seed_policy:
@@ -64,4 +67,3 @@ outputs:
     - supply_chain_stress
   monte_carlo_seeds: 20
   store_microstate: false
-

@@ -6,14 +6,15 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Initial target:
+Current Milestone 1 target:
 
-- 1,000-10,000 households;
-- 50-300 firms;
-- 3-20 private banks;
-- 3-20 sectors during early development.
+- 100,000 households;
+- 1,000 firms;
+- 25 private banks;
+- 20 sectors;
+- 5,000 supplier edges.
 
-Medium browser runs may later target 10,000-100,000 households using Web Workers, typed arrays, progress messages, cancellation, and downsampled charting.
+This is intentionally at the high end of browser-scale work and should move to a Web Worker before richer household-period updates are added.
 
 Browser results must be labelled as reduced-scale model-generated counterfactuals.
 
@@ -27,7 +28,7 @@ The default memory cap is:
 WORLD_ABM_MAX_MEMORY_GB=24
 ```
 
-The `local_large` tier may target 500,000-1,000,000 households only after `estimate_memory.py` predicts that the run fits safely.
+The `local_large` tier targets 1,000,000 households only after `estimate_memory.py` predicts that the run fits safely.
 
 ## External Research Scale
 
@@ -44,4 +45,3 @@ No paid cloud or external compute resources may be started without Fabian's expl
 ## Cross-Scale Rule
 
 Mechanisms must be checked across toy, browser, local, and research scales. A result that appears only at tiny scale may be a finite-size artifact; a result that appears only at huge scale may still be an artifact of behavioral assumptions.
-

@@ -6,7 +6,7 @@ The project is not a forecasting engine and not a policy-advice machine. Results
 
 ## First Research Question
 
-Under which mechanisms, calibrations, behavioral rules, supply-chain structures, credit regimes, expectation regimes, and shock environments does an increase in the central-bank policy interest rate reduce inflation, and when can it fail, be delayed, or become counterproductive?
+How does the inflation-interest-rate relationship behave inside a large heterogeneous-agent ABM with households, firms, banks, labor-market links, and production networks?
 
 The model must not hard-code the desired conclusion. It represents competing channels:
 
@@ -25,7 +25,7 @@ GitHub Pages is static hosting, so the project uses two scales:
 - **Browser scale:** interactive, reduced-size simulations in TypeScript/Web Workers.
 - **Research scale:** offline Python/Rust-compatible experiments with struct-of-arrays layouts, sparse production networks, deterministic seeds, and compressed summary artifacts for the website.
 
-Initial browser target: 1,000-10,000 households, 50-300 firms, and 3-20 banks.  
+Current Milestone 1 browser target: 100,000 households, 1,000 firms, 25 banks, 20 sectors, and 5,000 supplier edges.  
 Initial research target: 1,000,000 households, 5,000 firms, 25 banks, and 25 sectors, only after memory estimation confirms that the run is safe on the target machine.
 
 ## Calibration Direction
@@ -84,4 +84,3 @@ The Vite site is configured for GitHub Pages at `/economic-world-abm/`.
 ## License
 
 Code is MIT licensed. Documentation and research content should be treated as CC BY 4.0 unless a separate license file is added.
-
