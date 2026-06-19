@@ -8,7 +8,9 @@ import { createSeededRng } from "../random/seededRng";
 import type {
   ExpectationRuleMix,
   HouseholdRuleMix,
+  NetworkSummary,
   ScenarioConfig,
+  SectorSummary,
   SimulationPoint,
   SimulationResult
 } from "../schema/scenario";
@@ -59,16 +61,26 @@ interface EconomyArrays {
   readonly firmCash: Float64Array;
   readonly firmDebt: Float64Array;
   readonly firmInventory: Float64Array;
+  readonly firmInputRequirement: Float32Array;
+  readonly firmInputInventory: Float64Array;
+  readonly firmInputTarget: Float64Array;
+  readonly firmInputCostIndex: Float64Array;
+  readonly firmBacklog: Float64Array;
+  readonly firmReliability: Float32Array;
+  readonly firmDeliveryAttempts: Int32Array;
+  readonly firmDeliveryFailures: Int32Array;
   readonly firmWorkingCapitalExposure: Float32Array;
   readonly firmPriceStickiness: Float32Array;
   readonly firmMarkup: Float32Array;
   readonly firmDefaulted: Uint8Array;
   readonly sectorWeights: Float64Array;
+  readonly sectorOutputBaseline: Float64Array;
   readonly supplierNetwork: SupplierNetwork;
   readonly unemployedPool: number[];
   readonly layoffCursor: Int32Array;
   readonly baselineConsumption: number;
   readonly baselineDeposits: number;
+  readonly baselineInputInventory: number;
 }
 
 interface HouseholdPeriod {
@@ -78,6 +90,17 @@ interface HouseholdPeriod {
   readonly householdDebtServiceRatio: number;
   readonly ruleMix: HouseholdRuleMix;
   readonly budgetConsistent: boolean;
+}
+
+interface SupplyChainPeriod {
+  readonly inputAvailability: Float64Array;
+  readonly deliveryAttempts: number;
+  readonly deliveryFailures: number;
+  readonly rewiredEdges: number;
+  readonly deliveryFailureRate: number;
+  readonly supplierRewireShare: number;
+  readonly backlogIndex: number;
+  readonly inputInventoryIndex: number;
 }
 
 export function runSimulation(config: ScenarioConfig): SimulationResult {
@@ -94,7 +117,11 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
   let previousAverageWage = computeAveragePositive(economy.wage);
   let baseOutput = Math.max(1, computePotentialOutput(economy, 1));
   let cumulativeBankruptcies = 0;
+  let cumulativeDeliveryAttempts = 0;
+  let cumulativeDeliveryFailures = 0;
+  let cumulativeRewiredEdges = 0;
   let householdBudgetConsistent = true;
+  let lastSupplyChainPeriod: SupplyChainPeriod | undefined;
 
   for (let period = 0; period < config.periods; period += 1) {
     const policyRateAnnual = policyRateForPeriod(config, period);
@@ -112,7 +139,18 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
     );
     householdBudgetConsistent = householdBudgetConsistent && householdPeriod.budgetConsistent;
 
-    const networkInputPressure = computeNetworkInputPressure(economy);
+    const supplyChainPeriod = updateSupplyChain(
+      config,
+      economy,
+      policyShockAnnual,
+      householdPeriod.consumptionIndex,
+      rng
+    );
+    lastSupplyChainPeriod = supplyChainPeriod;
+    cumulativeDeliveryAttempts += supplyChainPeriod.deliveryAttempts;
+    cumulativeDeliveryFailures += supplyChainPeriod.deliveryFailures;
+    cumulativeRewiredEdges += supplyChainPeriod.rewiredEdges;
+
     const laborFlow = updateLaborMarket(
       config,
       economy,
@@ -127,7 +165,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
     const firmPeriod = updateFirms(
       config,
       economy,
-      networkInputPressure,
+      supplyChainPeriod,
       loanRateAnnual,
       policyShockAnnual,
       householdPeriod.consumptionIndex
@@ -177,6 +215,10 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       bankruptcies: cumulativeBankruptcies,
       creditGrowthAnnualized,
       supplyChainStress: firmPeriod.supplyChainStress,
+      backlogIndex: supplyChainPeriod.backlogIndex,
+      deliveryFailureRate: supplyChainPeriod.deliveryFailureRate,
+      supplierRewireShare: supplyChainPeriod.supplierRewireShare,
+      inputInventoryIndex: supplyChainPeriod.inputInventoryIndex,
       averageFirmPrice: ppi,
       sectorPriceDispersion,
       consumptionIndex: householdPeriod.consumptionIndex,
@@ -212,6 +254,14 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
   );
   const finalPoint = path[path.length - 1];
   const firmsWithWorkers = countPositive(economy.firmLabor);
+  const sectorSummaries = summarizeSectors(config, economy);
+  const networkSummary = summarizeNetwork(
+    economy,
+    cumulativeDeliveryAttempts,
+    cumulativeDeliveryFailures,
+    cumulativeRewiredEdges,
+    lastSupplyChainPeriod
+  );
 
   return {
     metadata: {
@@ -228,9 +278,11 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
         periods: config.periods,
         supplierEdges: economy.supplierNetwork.supplierId.length
       },
-      generatedAt: "deterministic-milestone-2"
+      generatedAt: "deterministic-milestone-3"
     },
     path,
+    sectors: sectorSummaries,
+    network: networkSummary,
     diagnostics: {
       employerWorkerConsistent,
       payrollConsistent,
@@ -251,6 +303,9 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       finalUnemploymentRate: finalPoint.unemploymentRate,
       finalOutputIndex: finalPoint.outputIndex,
       finalSupplyChainStress: finalPoint.supplyChainStress,
+      finalBacklogIndex: finalPoint.backlogIndex,
+      finalDeliveryFailureRate: finalPoint.deliveryFailureRate,
+      finalInputInventoryIndex: finalPoint.inputInventoryIndex,
       finalConsumptionIndex: finalPoint.consumptionIndex,
       finalAverageInflationExpectation: finalPoint.averageInflationExpectation,
       finalRuleMix: {
@@ -279,10 +334,20 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const firmCash = new Float64Array(config.firms);
   const firmDebt = new Float64Array(config.firms);
   const firmInventory = new Float64Array(config.firms);
+  const firmInputRequirement = new Float32Array(config.firms);
+  const firmInputInventory = new Float64Array(config.firms);
+  const firmInputTarget = new Float64Array(config.firms);
+  const firmInputCostIndex = new Float64Array(config.firms);
+  const firmBacklog = new Float64Array(config.firms);
+  const firmReliability = new Float32Array(config.firms);
+  const firmDeliveryAttempts = new Int32Array(config.firms);
+  const firmDeliveryFailures = new Int32Array(config.firms);
   const firmWorkingCapitalExposure = new Float32Array(config.firms);
   const firmPriceStickiness = new Float32Array(config.firms);
   const firmMarkup = new Float32Array(config.firms);
   const firmDefaulted = new Uint8Array(config.firms);
+  const sectorOutputBaseline = new Float64Array(config.sectors);
+  let baselineInputInventory = 0;
 
   for (let f = 0; f < config.firms; f += 1) {
     const sector = f % config.sectors;
@@ -300,6 +365,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmMarkup[f] = 0.08 + rng.nextFloat() * 0.22;
     firmWageOffer[f] = sectorBaseWage(sector, config.sectors) * (0.96 + rng.nextFloat() * 0.12);
     firmQuality[f] = 0.65 + rng.nextFloat() * 0.35;
+    firmInputCostIndex[f] = 1;
+    firmReliability[f] = clamp(0.96 - firmStage[f] * 0.018 - rng.nextFloat() * 0.16, 0.68, 0.98);
   }
 
   const employerId = new Int32Array(config.households);
@@ -345,6 +412,23 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
 
   for (let f = 0; f < config.firms; f += 1) {
     firmBaseLabor[f] = Math.max(1, firmLabor[f]);
+    const stage = firmStage[f];
+    const basePotentialOutput =
+      firmProductivity[f] *
+      Math.pow(firmBaseLabor[f] + 1, 0.62) *
+      Math.pow(firmCapital[f], 0.28);
+    const requirement =
+      0.1 +
+      stage * 0.045 +
+      firmWorkingCapitalExposure[f] * 0.08 +
+      (f % 3) * 0.012 +
+      rng.nextFloat() * 0.025;
+    const targetMonths = config.inputInventoryTargetMonths ?? config.inventoryBufferMonths ?? 1.5;
+    firmInputRequirement[f] = requirement;
+    firmInputTarget[f] = Math.max(6, basePotentialOutput * requirement * targetMonths);
+    firmInputInventory[f] = firmInputTarget[f] * (0.74 + rng.nextFloat() * 0.52);
+    baselineInputInventory += firmInputInventory[f];
+    sectorOutputBaseline[firmSector[f]] += Math.max(1, basePotentialOutput);
   }
 
   const sectorWeights = createSectorWeights(config.sectors);
@@ -382,16 +466,26 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmCash,
     firmDebt,
     firmInventory,
+    firmInputRequirement,
+    firmInputInventory,
+    firmInputTarget,
+    firmInputCostIndex,
+    firmBacklog,
+    firmReliability,
+    firmDeliveryAttempts,
+    firmDeliveryFailures,
     firmWorkingCapitalExposure,
     firmPriceStickiness,
     firmMarkup,
     firmDefaulted,
     sectorWeights,
+    sectorOutputBaseline,
     supplierNetwork,
     unemployedPool,
     layoffCursor,
     baselineConsumption: Math.max(1, baselineConsumption),
-    baselineDeposits: Math.max(1, baselineDeposits)
+    baselineDeposits: Math.max(1, baselineDeposits),
+    baselineInputInventory: Math.max(1, baselineInputInventory)
   };
 }
 
@@ -541,10 +635,130 @@ function updateLaborMarket(
   return { hires, layoffs, vacancies };
 }
 
+function updateSupplyChain(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  policyShockAnnual: number,
+  consumptionIndex: number,
+  rng: ReturnType<typeof createSeededRng>
+): SupplyChainPeriod {
+  const inputAvailability = new Float64Array(config.firms);
+  const inputCostPressure = computeNetworkInputPressure(economy);
+  const targetMonths = config.inputInventoryTargetMonths ?? config.inventoryBufferMonths ?? 1.5;
+  const baseMonths = config.inventoryBufferMonths ?? 1.5;
+  const targetScale = clamp(targetMonths / Math.max(0.25, baseMonths), 0.45, 2.5);
+  const deliveryFailureSensitivity = clamp(config.deliveryFailureSensitivity ?? 0.42, 0, 1.5);
+  const supplierRewireRate = clamp(config.supplierRewireRate ?? 0.16, 0, 1);
+  const inputSubstitutionElasticity = clamp(config.inputSubstitutionElasticity ?? 0.22, 0, 1);
+  let deliveryAttempts = 0;
+  let deliveryFailures = 0;
+  let rewiredEdges = 0;
+  let inputInventorySum = 0;
+  let backlogSum = 0;
+  let targetSum = 0;
+
+  for (let buyer = 0; buyer < config.firms; buyer += 1) {
+    const targetInventory = Math.max(1, economy.firmInputTarget[buyer] * targetScale);
+    const desiredOrder = economy.firmDefaulted[buyer]
+      ? 0
+      : Math.max(0, targetInventory - economy.firmInputInventory[buyer] + economy.firmBacklog[buyer] * 0.35);
+    let buyerDelivered = 0;
+    let weightedReliability = 0;
+
+    for (
+      let edge = economy.supplierNetwork.supplierPtr[buyer];
+      edge < economy.supplierNetwork.supplierPtr[buyer + 1];
+      edge += 1
+    ) {
+      const supplier = economy.supplierNetwork.supplierId[edge];
+      const weight = economy.supplierNetwork.contractWeight[edge];
+      weightedReliability += economy.firmReliability[supplier] * weight;
+
+      if (desiredOrder <= 0.01) {
+        continue;
+      }
+
+      deliveryAttempts += 1;
+      economy.firmDeliveryAttempts[buyer] += 1;
+
+      const orderQuantity = desiredOrder * weight;
+      const supplierBacklogRatio = economy.firmBacklog[supplier] / Math.max(1, economy.firmInputTarget[supplier]);
+      const supplierInventoryRatio =
+        economy.firmInventory[supplier] / Math.max(1, economy.firmOutput[supplier] + economy.firmBaseLabor[supplier]);
+      const supplierPricePressure = Math.max(0, inputCostPressure[supplier] - 1);
+      const fragility =
+        (1 - economy.firmReliability[supplier]) * 0.55 +
+        clamp(supplierBacklogRatio, 0, 2) * 0.23 +
+        Math.max(0, 0.5 - supplierInventoryRatio) * 0.08 +
+        supplierPricePressure * 0.11;
+      const failureProbability = clamp(
+        0.012 +
+          fragility * deliveryFailureSensitivity +
+          policyShockAnnual * deliveryFailureSensitivity * 2.4 +
+          Math.max(0, 1 - consumptionIndex) * 0.025,
+        0.004,
+        0.55
+      );
+      const failed = economy.firmDefaulted[supplier] === 1 || rng.nextFloat() < failureProbability;
+
+      if (failed) {
+        deliveryFailures += 1;
+        economy.firmDeliveryFailures[buyer] += 1;
+        economy.firmBacklog[buyer] += orderQuantity * (0.18 + deliveryFailureSensitivity * 0.16);
+        economy.firmReliability[supplier] = clamp(economy.firmReliability[supplier] * 0.985, 0.38, 0.99);
+
+        if (rng.nextFloat() < supplierRewireRate) {
+          economy.supplierNetwork.supplierId[edge] = drawReplacementSupplier(config, economy, buyer, rng);
+          rewiredEdges += 1;
+        }
+      } else {
+        const deliveryQuantity = orderQuantity * clamp(0.76 + economy.firmReliability[supplier] * 0.28, 0.62, 1.03);
+        buyerDelivered += deliveryQuantity;
+        economy.firmReliability[supplier] = clamp(0.992 * economy.firmReliability[supplier] + 0.008 * 0.98, 0.38, 0.99);
+        economy.firmInventory[supplier] = Math.max(0, economy.firmInventory[supplier] - deliveryQuantity * 0.018);
+      }
+    }
+
+    economy.firmInputInventory[buyer] = clamp(
+      economy.firmInputInventory[buyer] + buyerDelivered,
+      0,
+      targetInventory * 3
+    );
+    economy.firmInputCostIndex[buyer] = clamp(inputCostPressure[buyer] * (1 + (1 - weightedReliability) * 0.08), 0.55, 2.2);
+    const inventoryRatio = economy.firmInputInventory[buyer] / targetInventory;
+    const backlogRatio = economy.firmBacklog[buyer] / targetInventory;
+    inputAvailability[buyer] = economy.firmDefaulted[buyer]
+      ? 0.35
+      : clamp(0.48 + inventoryRatio * 0.52 - backlogRatio * 0.18 + inputSubstitutionElasticity * 0.12, 0.35, 1.16);
+
+    if (inputAvailability[buyer] > 0.9) {
+      economy.firmBacklog[buyer] *= 0.9;
+    } else {
+      economy.firmBacklog[buyer] *= 0.985;
+    }
+
+    inputInventorySum += economy.firmInputInventory[buyer];
+    backlogSum += economy.firmBacklog[buyer];
+    targetSum += targetInventory;
+  }
+
+  const supplierEdges = Math.max(1, economy.supplierNetwork.supplierId.length);
+  return {
+    inputAvailability,
+    deliveryAttempts,
+    deliveryFailures,
+    rewiredEdges,
+    deliveryFailureRate: deliveryFailures / Math.max(1, deliveryAttempts),
+    supplierRewireShare: rewiredEdges / supplierEdges,
+    backlogIndex: backlogSum / Math.max(1, targetSum),
+    inputInventoryIndex: inputInventorySum / economy.baselineInputInventory
+  };
+}
+
 function updateFirms(
   config: ScenarioConfig,
   economy: EconomyArrays,
-  networkInputPressure: Float64Array,
+  supplyChainPeriod: SupplyChainPeriod,
   loanRateAnnual: number,
   policyShockAnnual: number,
   consumptionIndex: number
@@ -569,17 +783,30 @@ function updateFirms(
     const labor = economy.firmLabor[f];
     const laborCapacity = Math.pow(labor + 1, 0.62);
     const capitalCapacity = Math.pow(economy.firmCapital[f], 0.28);
-    const inputStress = clamp(networkInputPressure[f] - 1, -0.35, 0.6);
-    const supplyPenalty = Math.max(0.62, 1 - Math.max(0, inputStress) * 0.18);
-    const output =
-      economy.firmProductivity[f] * laborCapacity * capitalCapacity * supplyPenalty * demandMultiplier;
+    const inputCostIndex = economy.firmInputCostIndex[f];
+    const inputAvailability = supplyChainPeriod.inputAvailability[f];
+    const shortageStress = Math.max(0, 1 - inputAvailability);
+    const backlogStress = economy.firmBacklog[f] / Math.max(1, economy.firmInputTarget[f]);
+    const inputStress = clamp(inputCostIndex - 1 + shortageStress * 0.68 + backlogStress * 0.18, -0.35, 0.9);
+    const plannedOutput = economy.firmProductivity[f] * laborCapacity * capitalCapacity * demandMultiplier;
+    const inputNeeded = plannedOutput * economy.firmInputRequirement[f];
+    const inputUsed = Math.min(economy.firmInputInventory[f], inputNeeded);
+    const inputBottleneck = inputNeeded > 0 ? inputUsed / inputNeeded : 1;
+    const supplyPenalty = clamp(0.58 + inputBottleneck * 0.42 - Math.max(0, inputStress) * 0.08, 0.42, 1.04);
+    const output = plannedOutput * supplyPenalty;
     economy.firmOutput[f] = output;
+    economy.firmInputInventory[f] = Math.max(0, economy.firmInputInventory[f] - inputUsed);
+    if (inputBottleneck < 0.98) {
+      economy.firmBacklog[f] += (1 - inputBottleneck) * inputNeeded * 0.72;
+    } else {
+      economy.firmBacklog[f] *= 0.94;
+    }
     totalOutput += output;
 
     const bankSpread = (economy.firmBank[f] % 7) * 0.0005;
     const effectiveLoanRateAnnual = loanRateAnnual + bankSpread;
     const wageBill = economy.firmWageBill[f];
-    const inputCost = output * networkInputPressure[f] * 0.34;
+    const inputCost = output * inputCostIndex * (0.24 + economy.firmInputRequirement[f] * 0.88);
     const workingCapitalNeed = Math.max(0, wageBill + inputCost - economy.firmCash[f] * 0.18);
     const workingCapitalCost =
       workingCapitalNeed * (effectiveLoanRateAnnual / 12) * economy.firmWorkingCapitalExposure[f];
@@ -595,6 +822,7 @@ function updateFirms(
       marginalCostPressure * (0.8 + costChannelStrength) +
       laborDemandPressure * 0.008 +
       householdDemandPressure * 0.012 +
+      backlogStress * 0.01 +
       policyShockAnnual * costChannelStrength * economy.firmWorkingCapitalExposure[f] * 0.055;
     const adjustmentShare = 1 - economy.firmPriceStickiness[f];
     economy.firmPrice[f] *= clamp(1 + desiredMonthlyPriceChange * adjustmentShare, 0.965, 1.055);
@@ -616,7 +844,7 @@ function updateFirms(
       economy.firmCash[f] = 0;
     }
 
-    stressSum += Math.max(0, inputStress) + (economy.firmDefaulted[f] ? 0.08 : 0);
+    stressSum += Math.max(0, inputStress) + backlogStress * 0.12 + (economy.firmDefaulted[f] ? 0.08 : 0);
   }
 
   const debtBase = Math.max(1, totalDebtBefore);
@@ -893,6 +1121,69 @@ function computeSectorPriceDispersion(firmPrice: Float64Array, firmSector: Int16
   return Math.sqrt(variance / sectors);
 }
 
+function summarizeSectors(config: ScenarioConfig, economy: EconomyArrays): SectorSummary[] {
+  const priceSum = new Float64Array(config.sectors);
+  const outputSum = new Float64Array(config.sectors);
+  const inputCostSum = new Float64Array(config.sectors);
+  const inputInventorySum = new Float64Array(config.sectors);
+  const inputTargetSum = new Float64Array(config.sectors);
+  const backlogSum = new Float64Array(config.sectors);
+  const deliveryAttempts = new Int32Array(config.sectors);
+  const deliveryFailures = new Int32Array(config.sectors);
+  const firmCount = new Int32Array(config.sectors);
+
+  for (let f = 0; f < config.firms; f += 1) {
+    const sector = economy.firmSector[f];
+    priceSum[sector] += economy.firmPrice[f];
+    outputSum[sector] += economy.firmOutput[f];
+    inputCostSum[sector] += economy.firmInputCostIndex[f];
+    inputInventorySum[sector] += economy.firmInputInventory[f];
+    inputTargetSum[sector] += economy.firmInputTarget[f];
+    backlogSum[sector] += economy.firmBacklog[f];
+    deliveryAttempts[sector] += economy.firmDeliveryAttempts[f];
+    deliveryFailures[sector] += economy.firmDeliveryFailures[f];
+    firmCount[sector] += 1;
+  }
+
+  const sectors: SectorSummary[] = [];
+  for (let sector = 0; sector < config.sectors; sector += 1) {
+    const firms = Math.max(1, firmCount[sector]);
+    sectors.push({
+      sectorId: sector,
+      stageId: stageForSector(sector, config.sectors),
+      firms: firmCount[sector],
+      priceIndex: priceSum[sector] / firms,
+      outputIndex: (outputSum[sector] / Math.max(1, economy.sectorOutputBaseline[sector])) * 100,
+      inputCostIndex: inputCostSum[sector] / firms,
+      inputInventoryIndex: inputInventorySum[sector] / Math.max(1, inputTargetSum[sector]),
+      backlogIndex: backlogSum[sector] / Math.max(1, inputTargetSum[sector]),
+      deliveryFailureRate: deliveryFailures[sector] / Math.max(1, deliveryAttempts[sector])
+    });
+  }
+
+  return sectors;
+}
+
+function summarizeNetwork(
+  economy: EconomyArrays,
+  deliveryAttempts: number,
+  deliveryFailures: number,
+  rewiredEdges: number,
+  finalPeriod: SupplyChainPeriod | undefined
+): NetworkSummary {
+  const supplierEdges = economy.supplierNetwork.supplierId.length;
+  return {
+    supplierEdges,
+    deliveryAttempts,
+    deliveryFailures,
+    rewiredEdges,
+    deliveryFailureRate: deliveryFailures / Math.max(1, deliveryAttempts),
+    supplierRewireShare: rewiredEdges / Math.max(1, deliveryAttempts),
+    backlogIndex: finalPeriod?.backlogIndex ?? 0,
+    inputInventoryIndex: finalPeriod?.inputInventoryIndex ?? 1
+  };
+}
+
 function normalizeHouseholdRuleMix(mix: HouseholdRuleMix | undefined): HouseholdRuleMix {
   const raw = mix ?? { handToMouth: 0.35, liquidityBuffer: 0.3, habit: 0.2, debtStress: 0.15 };
   const sum = raw.handToMouth + raw.liquidityBuffer + raw.habit + raw.debtStress || 1;
@@ -1017,6 +1308,22 @@ function drawFirmId(firms: number, rng: ReturnType<typeof createSeededRng>): num
   return Math.min(firms - 1, Math.floor(sizeTilt * firms));
 }
 
+function drawReplacementSupplier(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  buyer: number,
+  rng: ReturnType<typeof createSeededRng>
+): number {
+  const buyerSector = economy.firmSector[buyer];
+  const upstreamOffset = 1 + Math.floor(rng.nextFloat() * Math.min(4, config.sectors));
+  const supplierSector = (buyerSector - upstreamOffset + config.sectors) % config.sectors;
+  let supplier = firmIdForSector(config.firms, config.sectors, supplierSector, rng);
+  if (supplier === buyer) {
+    supplier = (supplier + config.sectors) % config.firms;
+  }
+  return supplier;
+}
+
 function stageForSector(sector: number, sectors: number): number {
   return Math.min(5, Math.floor((sector / Math.max(1, sectors)) * 6));
 }
@@ -1034,7 +1341,7 @@ function validateScenarioConfig(config: ScenarioConfig): void {
     throw new Error("Scenario periods must be positive.");
   }
   if (config.households < config.firms) {
-    throw new Error("Scenario must have at least as many households as firms for the Milestone 2 labor market.");
+    throw new Error("Scenario must have at least as many households as firms for the explicit labor market.");
   }
 }
 

@@ -26,3 +26,11 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added firm wage offers, matching friction, wage indexation, and demand-sensitive labor updates.
 - Added browser controls for household rule composition and expectation/labor parameters.
 - Added household-budget diagnostics and result paths for consumption, expectations, wage growth, and rule shares.
+
+## 0.4.0 - 2026-06-19
+
+- Added Milestone 3 intermediate-input inventories, input requirements, firm reliability, delivery attempts, delivery failures, backlogs, and supplier rewiring.
+- Made firm production depend on input availability and backlog pressure, with input-cost pressure feeding pricing and working-capital needs.
+- Added sector summaries for output, prices, input costs, inventory coverage, backlog pressure, and delivery failures.
+- Added aggregate network summaries and browser metrics for delivery failures, rewired edges, backlog index, and input inventory.
+- Added a production-network visualization and supply-chain controls to the AMOR web app.

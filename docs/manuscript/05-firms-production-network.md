@@ -47,7 +47,22 @@ The default implementation will expose pass-through strength, price stickiness, 
 
 A firm may be upstream, downstream, or central in the supplier graph. Higher rates can reduce downstream demand, lower upstream orders, raise bankruptcies, and disrupt input delivery. Conversely, higher financing costs in upstream sectors can pass through to final prices even when final demand weakens.
 
+## Milestone 3 Implementation Notes
+
+Milestone 3 turns the supplier graph into an active production constraint. Firms now hold intermediate-input inventories and input requirements. A monthly supplier routine sends orders through existing supplier edges, records delivery attempts, creates failures when suppliers are unreliable or stressed, and rewires a fraction of failed links toward replacement suppliers in upstream-biased sectors.
+
+Production is constrained by the ratio of available inputs to required inputs. Shortages reduce output, raise backlogs, and add marginal-cost pressure. Backlog pressure also enters the price rule, allowing supply-chain disruptions to appear in sector prices even when household demand is weak.
+
+The implemented assumptions are stylized:
+
+- Input requirements rise with downstream production stage and working-capital exposure.
+- Inventory targets are expressed in months of expected intermediate-input use.
+- Delivery failure probability responds to supplier reliability, supplier backlog, supplier inventory stress, supplier price pressure, and the policy-rate shock.
+- Rewiring is local to the synthetic production graph and preserves an upstream tendency.
+- Sector summaries report output, prices, input costs, inventory coverage, backlogs, and delivery failures.
+
+For Norway-first calibration, these stylized quantities should be replaced by Statistics Norway input-output structures, sector inventory norms where available, and explicit import exposure for energy, food, manufacturing, and construction inputs. EU / Euro area comparison should use comparable Eurostat input-output and sector-price assumptions after the Norway baseline is documented.
+
 ## Norway And EU Calibration Direction
 
 The first empirical sector and input-output calibration will target Norway. EU / Euro area structures will follow. When Norway-specific data are unavailable, stylized values may be used, but they must be labelled as stylized and included in sensitivity checks.
-

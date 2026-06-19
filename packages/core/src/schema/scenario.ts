@@ -35,6 +35,10 @@ export interface ScenarioConfig {
   readonly wageIndexation?: number;
   readonly costChannelStrength?: number;
   readonly inventoryBufferMonths?: number;
+  readonly inputInventoryTargetMonths?: number;
+  readonly deliveryFailureSensitivity?: number;
+  readonly supplierRewireRate?: number;
+  readonly inputSubstitutionElasticity?: number;
   readonly householdRuleMix?: HouseholdRuleMix;
   readonly expectationRuleMix?: ExpectationRuleMix;
   readonly ruleSwitchingIntensity?: number;
@@ -77,6 +81,10 @@ export interface SimulationPoint {
   readonly bankruptcies: number;
   readonly creditGrowthAnnualized: number;
   readonly supplyChainStress: number;
+  readonly backlogIndex: number;
+  readonly deliveryFailureRate: number;
+  readonly supplierRewireShare: number;
+  readonly inputInventoryIndex: number;
   readonly averageFirmPrice: number;
   readonly sectorPriceDispersion: number;
   readonly consumptionIndex: number;
@@ -90,9 +98,34 @@ export interface SimulationPoint {
   readonly debtStressShare: number;
 }
 
+export interface SectorSummary {
+  readonly sectorId: number;
+  readonly stageId: number;
+  readonly firms: number;
+  readonly priceIndex: number;
+  readonly outputIndex: number;
+  readonly inputCostIndex: number;
+  readonly inputInventoryIndex: number;
+  readonly backlogIndex: number;
+  readonly deliveryFailureRate: number;
+}
+
+export interface NetworkSummary {
+  readonly supplierEdges: number;
+  readonly deliveryAttempts: number;
+  readonly deliveryFailures: number;
+  readonly rewiredEdges: number;
+  readonly deliveryFailureRate: number;
+  readonly supplierRewireShare: number;
+  readonly backlogIndex: number;
+  readonly inputInventoryIndex: number;
+}
+
 export interface SimulationResult {
   readonly metadata: SimulationMetadata;
   readonly path: readonly SimulationPoint[];
+  readonly sectors: readonly SectorSummary[];
+  readonly network: NetworkSummary;
   readonly diagnostics: {
     readonly employerWorkerConsistent: boolean;
     readonly payrollConsistent: boolean;
@@ -108,6 +141,9 @@ export interface SimulationResult {
     readonly finalUnemploymentRate: number;
     readonly finalOutputIndex: number;
     readonly finalSupplyChainStress: number;
+    readonly finalBacklogIndex: number;
+    readonly finalDeliveryFailureRate: number;
+    readonly finalInputInventoryIndex: number;
     readonly finalConsumptionIndex: number;
     readonly finalAverageInflationExpectation: number;
     readonly finalRuleMix: HouseholdRuleMix;
@@ -115,8 +151,8 @@ export interface SimulationResult {
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_2_browser_100k",
-  modelVersion: "0.3.0",
+  scenarioName: "milestone_3_browser_100k",
+  modelVersion: "0.4.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,
@@ -135,6 +171,10 @@ export const firstStructuralDemoConfig: ScenarioConfig = {
   wageIndexation: 0.28,
   costChannelStrength: 0.35,
   inventoryBufferMonths: 1.5,
+  inputInventoryTargetMonths: 1.6,
+  deliveryFailureSensitivity: 0.42,
+  supplierRewireRate: 0.16,
+  inputSubstitutionElasticity: 0.22,
   householdRuleMix: {
     handToMouth: 0.35,
     liquidityBuffer: 0.3,

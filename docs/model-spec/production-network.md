@@ -67,6 +67,32 @@ Y[f,t] = min(Y_cap[f,t], Y_input[f,t], Y_plan[f,t])
 
 CES substitution is a later sensitivity option.
 
+## Milestone 3 Browser Implementation
+
+The Milestone 3 TypeScript browser model keeps the graph compact enough for a 100,000-household browser run while making intermediate inputs economically active.
+
+Each firm now stores:
+
+- an input requirement per unit of planned output;
+- an intermediate-input inventory stock;
+- an inventory target measured in months;
+- an input-cost index from its supplier set;
+- a backlog stock from missed or insufficient input deliveries;
+- a supplier reliability score;
+- cumulative delivery attempts and failures.
+
+Each monthly step:
+
+1. Buyers compare current input inventories with their target and backlog.
+2. Orders are split across supplier edges by contract weight.
+3. Suppliers may fail to deliver based on reliability, backlog pressure, inventory stress, supplier price pressure, and policy-rate shock pressure.
+4. Failed deliveries add buyer backlog and reduce supplier reliability.
+5. Buyers may rewire failed links to a replacement supplier in an upstream-biased sector.
+6. Production is constrained by available intermediate inputs.
+7. Backlog and input-cost pressure feed firm pricing and working-capital needs.
+
+The current rule is still stylized. Norway is the first calibration target, so the next empirical step is to replace synthetic input requirements and stage weights with Norway input-output tables and sector-specific import/exposure assumptions. EU / Euro area parameters should then be added as a comparison rather than blended into the Norway baseline.
+
 ## Edge State
 
 Each supplier-buyer edge stores:
@@ -83,7 +109,8 @@ Each supplier-buyer edge stores:
 - contract duration;
 - relationship strength.
 
+The current browser model implements the first four operational edge concepts indirectly through supplier id, buyer id, contract weight, supplier price, and firm reliability. Delivery delay, trade credit, contract duration, and relationship strength remain explicit future state variables.
+
 ## Monetary-Policy Propagation
 
 The cost channel enters when higher loan rates increase working-capital costs for credit-dependent firms. The demand channel enters when higher rates reduce household demand, investment, construction, housing, and credit-sensitive durable consumption. The production network lets these effects propagate upstream and downstream.
-

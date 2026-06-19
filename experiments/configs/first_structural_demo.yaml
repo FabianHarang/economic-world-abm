@@ -1,12 +1,13 @@
-schema_version: 0.1.0
-scenario_name: milestone_2_browser_100k
+schema_version: 0.2.0
+scenario_name: milestone_3_browser_100k
 description: >
-  Milestone 2 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
+  Milestone 3 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
   25 private banks, explicit employer-worker links, a directed supplier network,
   household behavior rules, expectation rules, wage offers, matching friction,
-  rule switching, and a one-time +100 bps policy-rate shock. This is still a
-  reduced-scale browser run; the 1,000,000 household target belongs to the
-  offline research engine.
+  rule switching, intermediate-input inventories, delivery failures, supplier
+  rewiring, sector summaries, and a one-time +100 bps policy-rate shock. This is
+  still a reduced-scale browser run; the 1,000,000 household target belongs to
+  the offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -51,6 +52,13 @@ firms:
   average_price_stickiness_months: 4
   inventory_buffer_months: 1.5
   supplier_concentration: medium
+production_network:
+  input_inventory_target_months: 1.6
+  delivery_failure_sensitivity: 0.42
+  supplier_rewire_rate: 0.16
+  input_substitution_elasticity: 0.22
+  input_bottleneck_rule: leontief_with_small_substitution_sensitivity
+  calibration_status: stylized_until_norway_io_tables_are_added
 labor_market:
   firing_friction: medium
   matching_friction: medium
@@ -81,5 +89,9 @@ outputs:
     - credit_growth
     - sectoral_prices
     - supply_chain_stress
+    - backlog_index
+    - delivery_failure_rate
+    - supplier_rewire_share
+    - input_inventory_index
   monte_carlo_seeds: 20
   store_microstate: false

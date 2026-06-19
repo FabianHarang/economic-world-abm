@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface ControlSliderProps {
   readonly label: string;
   readonly value: number;
@@ -17,16 +19,19 @@ export function ControlSlider({
   suffix = "%",
   onChange
 }: ControlSliderProps) {
-  const displayValue = suffix === "%" ? `${Math.round(value * 100)}%` : value.toFixed(2);
+  const inputId = useId();
+  const displayValue = suffix === "%" ? `${Math.round(value * 100)}%` : `${value.toFixed(2)}${suffix}`;
   const updateValue = (nextValue: string) => onChange(Number(nextValue));
 
   return (
-    <label className="control-slider">
-      <span>
+    <div className="control-slider">
+      <label htmlFor={inputId}>
         {label}
         <strong>{displayValue}</strong>
-      </span>
+      </label>
       <input
+        id={inputId}
+        aria-label={label}
         type="range"
         min={min}
         max={max}
@@ -35,6 +40,6 @@ export function ControlSlider({
         onInput={(event) => updateValue(event.currentTarget.value)}
         onChange={(event) => updateValue(event.currentTarget.value)}
       />
-    </label>
+    </div>
   );
 }
