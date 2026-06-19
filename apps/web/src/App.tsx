@@ -16,12 +16,12 @@ import { milestone10StaticResults } from "./data/staticResults";
 type WorkspaceView = "overview" | "experiment" | "results" | "networks" | "labor" | "manuscript";
 
 const workspaceViews: Array<{ id: WorkspaceView; label: string; detail: string }> = [
-  { id: "overview", label: "Overview", detail: "research brief" },
-  { id: "experiment", label: "Simulator", detail: "controls and results" },
-  { id: "results", label: "Results", detail: "static artifact" },
-  { id: "networks", label: "Networks", detail: "supplier graph" },
-  { id: "labor", label: "Labor", detail: "worker flows" },
-  { id: "manuscript", label: "Manuscript", detail: "docs and limits" }
+  { id: "overview", label: "Overview", detail: "research case" },
+  { id: "experiment", label: "Simulator", detail: "counterfactuals" },
+  { id: "results", label: "Results", detail: "evidence status" },
+  { id: "networks", label: "Networks", detail: "propagation" },
+  { id: "labor", label: "Labor", detail: "income channel" },
+  { id: "manuscript", label: "Manuscript", detail: "reader" }
 ];
 
 export function App() {
@@ -114,6 +114,12 @@ export function App() {
   const stressedSectorCount = result.sectors.filter((sector) => sector.backlogIndex > 0.05 || sector.deliveryFailureRate > 0.05).length;
   const researchSupplierEdges =
     researchScaleMilestoneConfig.firms * (researchScaleMilestoneConfig.supplierEdgesPerFirm ?? 0);
+  const openWorkspaceView = (view: WorkspaceView) => {
+    setActiveView(view);
+    window.requestAnimationFrame(() => {
+      document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   return (
     <main className="amor-page">
@@ -131,24 +137,27 @@ export function App() {
           <div className="hero-grid">
             <div className="hero-copy">
               <p className="amor-kicker">Computational laboratory</p>
-              <h1>Large ABM laboratory for inflation and interest rates</h1>
+              <h1>Interest-rate transmission in a networked economy</h1>
               <p className="hero-lede">
-                A structured research workspace for testing the inflation-interest-rate relationship across households,
-                firms, banks, employer-worker links, asset channels, and production networks. Milestone 10 adds a
-                curated static-result artifact so offline runs can be presented without loading raw microstate.
+                A large agent-based macro laboratory for asking when higher rates cool inflation, when credit and
+                mortgage channels dominate, and when firm costs, labor income, housing, and supplier networks change the
+                timing or sign of the response.
               </p>
               <div className="hero-actions">
-                <a className="amor-button" href="#workspace">
-                  Open workspace
-                </a>
+                <button className="amor-button" type="button" onClick={() => openWorkspaceView("manuscript")}>
+                  Read manuscript
+                </button>
+                <button className="amor-button secondary" type="button" onClick={() => openWorkspaceView("overview")}>
+                  Explore model
+                </button>
                 <a className="amor-button secondary" href="#model-warning">
-                  Read warning
+                  Model warning
                 </a>
               </div>
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 10 static results</span>
+              <span className="snapshot-title">Research-scale ABM</span>
               <dl>
                 <div>
                   <dt>Browser households</dt>
@@ -188,10 +197,10 @@ export function App() {
           <div className="workspace-header">
             <div className="section-heading">
               <p className="amor-kicker">Milestone 10</p>
-              <h2>Structured results workspace</h2>
+              <h2>Research workspace</h2>
               <p className="section-note">
-                The site separates assumptions, live browser experiments, static offline artifacts, mechanism explorers,
-                and manuscript context.
+                A reader should be able to move from motivation to mechanisms, inspect counterfactuals, see what is and
+                is not evidence yet, and understand how the project fits the macro literature.
               </p>
             </div>
             <div className="workspace-health" aria-label="Current run health">
@@ -222,37 +231,44 @@ export function App() {
                 <div className="briefing-grid">
                   <article className="briefing-lead">
                     <p className="amor-kicker">Research brief</p>
-                    <h3>What this page is for</h3>
+                    <h3>Why this model exists</h3>
                     <p>
-                      Use this site as a guided laboratory: start with the assumptions, inspect paired treatment effects,
-                      move into the network and labor mechanisms, and finish with limitations and reproducibility.
+                      The inflation-interest-rate relationship is not one channel. A rate increase changes household
+                      cash flow, credit supply, firm working-capital costs, wages, asset prices, and supplier
+                      bottlenecks. A large ABM lets those channels interact instead of forcing them into one average
+                      representative household or firm.
                     </p>
                   </article>
                   <div className="briefing-steps">
                     <article>
                       <span>01</span>
-                      <h4>Choose assumptions</h4>
-                      <p>Scenario levers stay in the Simulator view so the page does not start as a wall of controls.</p>
+                      <h4>Research question</h4>
+                      <p>When do rate hikes reduce inflation quickly, and when do cost, credit, and network channels delay or offset the effect?</p>
                     </article>
                     <article>
                       <span>02</span>
-                      <h4>Read effects</h4>
-                      <p>Counterfactual charts compare treatment and baseline runs that share identical seeds.</p>
+                      <h4>Norway first</h4>
+                      <p>High variable-rate mortgage exposure makes household cash-flow transmission central before the EU comparison is added.</p>
                     </article>
                     <article>
                       <span>03</span>
-                      <h4>Open artifacts</h4>
-                      <p>Curated static results expose scale, diagnostics, final metrics, and sector stress rankings.</p>
+                      <h4>Counterfactual design</h4>
+                      <p>Treatment and baseline economies share seeds; the policy-rate path is the controlled difference.</p>
                     </article>
                     <article>
                       <span>04</span>
-                      <h4>Inspect mechanisms</h4>
-                      <p>Network and labor views separate the most important propagation channels.</p>
+                      <h4>Mechanism inspection</h4>
+                      <p>Network and labor views show where aggregate paths come from: supplier stress, layoffs, vacancies, and income effects.</p>
                     </article>
                     <article>
                       <span>05</span>
-                      <h4>Check limits</h4>
-                      <p>The manuscript view keeps assumptions, citations, and reproducibility close to the model.</p>
+                      <h4>Evidence status</h4>
+                      <p>Current artifacts are reproducibility checks. Economic claims require calibrated Norway/EU data and many paired seeds.</p>
+                    </article>
+                    <article>
+                      <span>06</span>
+                      <h4>Manuscript</h4>
+                      <p>The Manuscript view now presents the readable argument, literature position, and research roadmap.</p>
                     </article>
                   </div>
                 </div>
@@ -261,16 +277,16 @@ export function App() {
                   <MetricTile label="Browser households" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript companion" />
                   <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline Python engine" />
                   <MetricTile label="Supplier edges" value={result.metadata.scale.supplierEdges.toLocaleString()} detail="Browser graph scale" />
-                  <MetricTile label="Static artifact" value={milestone10StaticResults.scale.households.toLocaleString()} detail="Committed smoke-scale run" />
+                  <MetricTile label="Current artifact" value={milestone10StaticResults.scale.households.toLocaleString()} detail="Smoke-scale evidence contract" />
                   <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Treatment minus baseline" />
                 </div>
 
                 <div className="result-brief">
                   <div>
-                    <span>Current treatment endpoint</span>
+                    <span>Current browser experiment</span>
                     <strong>{(finalPoint.inflationAnnualized * 100).toFixed(2)}% inflation</strong>
                     <p>
-                      Final treatment path: housing {finalPoint.housingPriceIndex.toFixed(2)}, equity{" "}
+                      The live companion is a mechanism run, not a forecast. Final treatment path: housing {finalPoint.housingPriceIndex.toFixed(2)}, equity{" "}
                       {finalPoint.equityPriceIndex.toFixed(2)}, unemployment{" "}
                       {(finalPoint.unemploymentRate * 100).toFixed(2)}%, stressed sectors{" "}
                       {stressedSectorCount.toLocaleString()}.
@@ -280,8 +296,8 @@ export function App() {
                     <span>Static artifact status</span>
                     <strong>{milestone10StaticResults.diagnosticsPassed ? "Diagnostics passed" : "Diagnostics failed"}</strong>
                     <p>
-                      Milestone 10 commits a curated result artifact with metadata, final-period indicators, network
-                      summary, and sector stress rankings. Raw microstate remains excluded from git.
+                      The Results view shows the current evidence contract: what the offline engine can publish on a
+                      static site while raw household and firm microstate stay out of git.
                     </p>
                   </div>
                 </div>
@@ -318,11 +334,12 @@ export function App() {
 
                 <div className="results-grid workspace-results">
                   <div>
-                    <p className="amor-kicker">Seeded browser companion</p>
-                    <h2>Metadata before conclusions</h2>
+                    <p className="amor-kicker">Counterfactual design</p>
+                    <h2>One shock, two matched economies</h2>
                     <p>
-                      Baseline and treatment reuse identical seeds; only the policy-rate shock differs. Norway mortgage
-                      exposure is stylized at the high variable-rate range pending calibration.
+                      The simulator compares a baseline path with a treatment path that receives a temporary policy-rate
+                      increase. Both economies reuse identical seeds, so differences are read as model-generated
+                      treatment effects under the current assumptions.
                     </p>
                     <ul className="metadata-list">
                       <li>Model version: {result.metadata.modelVersion}</li>
@@ -376,20 +393,28 @@ export function App() {
 
             {activeView === "networks" && (
               <div className="workspace-view">
+                <div className="view-intro">
+                  <p className="amor-kicker">Production-network propagation</p>
+                  <h3>Why aggregate inflation can depend on topology</h3>
+                  <p>
+                    Supplier links determine whether higher financing costs and weaker demand stay local or travel
+                    through input shortages, delivery failures, backlogs, and replacement-supplier behavior.
+                  </p>
+                </div>
                 <NetworkExplorer sectors={result.sectors} network={result.network} />
                 <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
                 <div className="work-grid">
                   <article>
-                    <h3>Supplier stress</h3>
-                    <p>Delivery failures and input shortages can transmit upstream or downstream through the graph.</p>
+                    <h3>Literature bridge</h3>
+                    <p>Production-network macro shows that sector centrality and input linkages can amplify shocks.</p>
                   </article>
                   <article>
-                    <h3>Rewiring</h3>
-                    <p>Local rewiring is a sandbox interaction for exploring alternate topology assumptions.</p>
+                    <h3>Model channel</h3>
+                    <p>Firms hold input inventories, accumulate backlogs, face delivery failures, and can rewire suppliers.</p>
                   </article>
                   <article>
-                    <h3>Research scale</h3>
-                    <p>{researchSupplierEdges.toLocaleString()} sparse edges are targeted in the offline engine.</p>
+                    <h3>Empirical target</h3>
+                    <p>{researchSupplierEdges.toLocaleString()} sparse edges are targeted before input-output calibration.</p>
                   </article>
                 </div>
               </div>
@@ -397,6 +422,14 @@ export function App() {
 
             {activeView === "labor" && (
               <div className="workspace-view">
+                <div className="view-intro">
+                  <p className="amor-kicker">Labor-income transmission</p>
+                  <h3>Interest rates matter through paychecks, not only discount factors</h3>
+                  <p>
+                    The labor view connects firm stress to vacancies, layoffs, unemployment, consumption pressure, and
+                    wage growth. This is where household heterogeneity becomes macro-relevant.
+                  </p>
+                </div>
                 <LaborMarketExplorer result={result} />
                 <div className="metric-grid">
                   <MetricTile label="Unemployment" value={`${(finalPoint.unemploymentRate * 100).toFixed(2)}%`} detail="Final treatment path" />
@@ -412,16 +445,16 @@ export function App() {
                 <ManuscriptPanel result={result} experiment={experiment} />
                 <div className="work-grid">
                   <article>
-                    <h3>Limitations stay visible</h3>
-                    <p>The site labels current outputs as architecture checks until Norway/EU calibration is complete.</p>
+                    <h3>Readable argument</h3>
+                    <p>The manuscript view now carries motivation, contribution, model design, and interpretation rules.</p>
                   </article>
                   <article>
-                    <h3>Reproducibility first</h3>
-                    <p>Every result must tie back to model version, scenario name, parameter hash, and seed policy.</p>
+                    <h3>Literature position</h3>
+                    <p>The project is framed against HANK, financial accelerator, production-network, and ABM research.</p>
                   </article>
                   <article>
-                    <h3>Milestone 10 scope</h3>
-                    <p>The Results view now presents curated static artifacts while excluding raw microstate.</p>
+                    <h3>Evidence discipline</h3>
+                    <p>Current outputs remain architecture checks until Norway/EU calibration and paired-seed sweeps mature.</p>
                   </article>
                 </div>
               </div>

@@ -13,11 +13,12 @@ export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
     <section className="static-results-panel" aria-label="Curated static result artifact">
       <div className="artifact-hero">
         <div>
-          <p className="amor-kicker">Milestone 10 result artifact</p>
+          <p className="amor-kicker">Evidence status</p>
           <h3>{scaleLabel}: {artifact.scenarioName}</h3>
           <p>
-            A compact, reproducible website payload from the offline engine. It includes aggregate outcomes,
-            network diagnostics, and sector stress rankings, while keeping raw household and firm microstate out of git.
+            The current published artifact demonstrates the research pipeline: an offline engine run reduced to
+            diagnostics, aggregate outcomes, network metrics, and sector stress rankings. It is deliberately labelled as
+            a smoke artifact until calibrated Norway/EU paired-seed results replace it.
           </p>
         </div>
         <dl className="artifact-id-card">
@@ -80,7 +81,10 @@ export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
           <p className="amor-kicker">Economy assumptions</p>
           <h4>{artifact.economyAssumptions.primary} first, {artifact.economyAssumptions.secondary} comparison</h4>
           <p>{artifact.economyAssumptions.mortgagePassThrough}</p>
-          <p>{artifact.economyAssumptions.interpretation}</p>
+          <p>
+            The economic interpretation is intentionally restrained: this run checks the reporting contract before the
+            model is calibrated to Norwegian debt, housing, labor, banking, price, and input-output data.
+          </p>
           <dl>
             <div>
               <dt>Network representation</dt>
@@ -127,8 +131,8 @@ export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
 
       <section className="artifact-policy" aria-label="Artifact policy and limitations">
         <div>
-          <p className="amor-kicker">Artifact policy</p>
-          <h4>{policy.committedPayload}</h4>
+          <p className="amor-kicker">Publication rule</p>
+          <h4>Curated aggregate summary only</h4>
           <p>{policy.intendedUse}</p>
         </div>
         <ul>
