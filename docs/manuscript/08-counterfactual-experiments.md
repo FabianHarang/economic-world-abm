@@ -21,4 +21,4 @@ The model must not be tuned to force a preferred sign. Rate hikes can reduce dem
 
 ## Next Research Step
 
-Milestone 6 should move these experiments toward a research-scale engine with many seeds, saved static artifacts, sensitivity tables, and Norway-first calibration metadata.
+Milestone 6 now provides the first research-scale engine. The next counterfactual expansion is to run many paired seeds offline, save static artifacts, add sensitivity tables, and attach Norway-first calibration metadata.

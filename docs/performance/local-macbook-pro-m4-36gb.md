@@ -32,6 +32,28 @@ Before attempting a million-household run locally:
 4. Record peak memory, runtime per period, agent-periods per second, and diagnostics.
 5. If memory or runtime is unsafe, downscale locally and prepare an external compute plan.
 
+Milestone 6 commands:
+
+```bash
+python3 experiments/scripts/estimate_memory.py
+python3 experiments/scripts/benchmark_local_m4_36gb.py
+PYTHONPATH=research_engine python3 -m world_abm.run \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --out experiments/results/research_scale_baseline
+```
+
+Use a smaller benchmark first, for example:
+
+```bash
+python3 experiments/scripts/benchmark_local_m4_36gb.py \
+  --households 50000 \
+  --firms 250 \
+  --banks 10 \
+  --sectors 10 \
+  --periods 24 \
+  --supplier-edges 2500
+```
+
 ## What To Record
 
 The benchmark report must record:
@@ -55,4 +77,3 @@ The benchmark report must record:
 - Avoid Rosetta/x86 environments unless documented.
 - Benchmark NumPy/Polars/Numba/Rust alternatives rather than assuming one is best.
 - Do not use GPU/Metal acceleration unless a benchmark demonstrates a clear benefit.
-

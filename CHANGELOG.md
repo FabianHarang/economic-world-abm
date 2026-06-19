@@ -50,3 +50,12 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added simple Monte Carlo min/mean/max uncertainty bands across paired seeds.
 - Added counterfactual summary metrics and treatment-effect charts to the AMOR web app.
 - Updated the Norway mortgage assumption so the default realized variable-rate exposure sits in the 80-90% range.
+
+## 0.7.0 - 2026-06-19
+
+- Added the Milestone 6 offline Python research engine with typed household, firm, bank, and sparse-network arrays.
+- Added a scalable employer-worker representation using firm worker counts plus an initial household-employer snapshot.
+- Added compressed research artifacts: metadata, summary, diagnostics, network summary, aggregate JSONL.gz, and sector JSONL.gz.
+- Added research-engine CLIs for running scenarios and cross-scale validation.
+- Updated local benchmark and memory-estimation scripts to use the Milestone 6 engine.
+- Updated the web app to present Milestone 6 as the research-scale offline layer while retaining the browser paired counterfactual companion.

@@ -43,7 +43,6 @@ These are the initial GitHub issues or equivalent project tasks from the master 
 39. Add external compute decision document with HPC/cloud templates and approval gates.
 40. Full QA, accessibility, AMOR design compliance, performance, and documentation review.
 
-## Near-Term Focus
+## Current Focus
 
-The immediate next task after the scaffold is Milestone 1: a minimal but structurally correct production-network ABM with explicit employer-worker links, seeded randomness, accounting invariants, and a basic interactive dashboard.
-
+Milestone 6 is active: the project now has a browser companion plus an offline research-scale engine. The next major focus is Milestone 7 calibration and sensitivity after the research engine, compressed artifacts, memory estimator, benchmark protocol, and cross-scale validation have been verified.

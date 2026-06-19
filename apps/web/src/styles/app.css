@@ -143,6 +143,12 @@
   margin-bottom: var(--amor-space-5);
 }
 
+.section-note {
+  color: var(--amor-ink-soft);
+  line-height: 1.65;
+  max-width: 880px;
+}
+
 .section-heading h2,
 .results-grid h2 {
   color: var(--amor-ink);
@@ -158,6 +164,10 @@
   display: grid;
   gap: var(--amor-space-4);
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.companion-grid {
+  margin-top: var(--amor-space-4);
 }
 
 .metric-tile,

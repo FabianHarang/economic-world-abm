@@ -32,4 +32,4 @@ Milestone 5 reports:
 
 ## Research-Scale Direction
 
-The research engine should later expand this into many paired seeds, scenario libraries, precomputed static artifacts, and sensitivity tables. Norway scenarios should come first, followed by EU / Euro area comparisons with separate mortgage, housing, bank, and portfolio assumptions.
+Milestone 6 provides the offline engine that can generate precomputed static artifacts for larger paired experiments. The first implementation focuses on a single research-scale run and cross-scale validation. Later milestones should add many paired seeds, scenario libraries, sensitivity tables, and Norway-first calibration metadata. EU / Euro area comparisons should follow with separate mortgage, housing, bank, and portfolio assumptions.

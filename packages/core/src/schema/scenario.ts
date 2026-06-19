@@ -251,8 +251,8 @@ export interface SimulationResult {
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_5_browser_100k",
-  modelVersion: "0.6.0",
+  scenarioName: "milestone_6_browser_companion_100k",
+  modelVersion: "0.7.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,
@@ -309,6 +309,6 @@ export const researchScaleMilestoneConfig: ScenarioConfig = {
   firms: 5_000,
   banks: 25,
   sectors: 25,
-  supplierEdgesPerFirm: 6,
+  supplierEdgesPerFirm: 15,
   seed: 12_345
 };

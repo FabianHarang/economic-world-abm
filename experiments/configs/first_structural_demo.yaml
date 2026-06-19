@@ -1,15 +1,16 @@
-schema_version: 0.4.0
-scenario_name: milestone_5_browser_100k
+schema_version: 0.7.0
+scenario_name: milestone_6_browser_companion_100k
+model_version: 0.7.0
 description: >
-  Milestone 5 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
-  25 private banks, explicit employer-worker links, a directed supplier network,
-  household behavior rules, expectation rules, wage offers, matching friction,
-  rule switching, intermediate-input inventories, delivery failures, supplier
-  rewiring, sector summaries, mortgage pass-through, housing prices,
+  Milestone 6 browser companion run: 100,000 households, 1,000 firms, 20
+  sectors, 25 private banks, explicit employer-worker links, a directed supplier
+  network, household behavior rules, expectation rules, wage offers, matching
+  friction, rule switching, intermediate-input inventories, delivery failures,
+  supplier rewiring, sector summaries, mortgage pass-through, housing prices,
   construction demand, firm equity values, household portfolio choice, bank
   credit tightness, paired-seed baseline/treatment rate-hike experiments, and a
-  one-time +100 bps policy-rate shock. This is still a reduced-scale browser
-  run; the 1,000,000 household target belongs to the offline research engine.
+  one-time +100 bps policy-rate shock. This remains an interactive companion;
+  the 1,000,000 household target belongs to the offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area

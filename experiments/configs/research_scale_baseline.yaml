@@ -1,8 +1,11 @@
-schema_version: 0.1.0
+schema_version: 0.7.0
 scenario_name: research_scale_baseline
+model_version: 0.7.0
 description: >
-  Target research-scale baseline configuration for the offline engine. This
-  config is a benchmark target, not a default CI or browser run.
+  Milestone 6 research-scale baseline configuration for the offline Python
+  engine. This config targets typed household, firm, bank, and sparse-network
+  arrays with compressed aggregate outputs. It is a benchmark target, not a
+  default CI or browser run.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -30,18 +33,32 @@ memory:
 policy:
   baseline_policy_rate_annual: 0.04
   regime: fixed_path
+credit_housing_equity:
+  variable_mortgage_share: 0.90
+  mortgage_spread_bps: 185
+  fixed_mortgage_repricing_speed: 0.08
+  housing_supply_elasticity: 0.28
+  wealth_effect_strength: 0.16
+  calibration_status: stylized_norway_first_until_mortgage_housing_portfolio_data_are_added
 outputs:
   aggregate_time_series: true
   sector_time_series: true
   distribution_summaries: true
   network_summary_metrics: true
+  compressed_artifacts:
+    - metadata.json
+    - summary.json
+    - diagnostics.json
+    - network_summary.json
+    - aggregate.jsonl.gz
+    - sectors.jsonl.gz
   representative_micro_traces: false
   raw_microstate: false
 diagnostics:
-  employer_worker_consistency: required
-  payroll_consistency: required
+  employer_worker_representation: firm_counts_plus_initial_household_employer_snapshot
+  household_state_arrays: required
+  worker_count_totals: required
   bank_balance_sheet: required
   firm_cashflow: required
-  household_budget: required
-  production_network_edges: required
-
+  sparse_production_network_edges: required
+  cross_scale_validation: required_before_research_interpretation
