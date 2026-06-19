@@ -1,13 +1,15 @@
-schema_version: 0.2.0
-scenario_name: milestone_3_browser_100k
+schema_version: 0.3.0
+scenario_name: milestone_4_browser_100k
 description: >
-  Milestone 3 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
+  Milestone 4 browser-scale run: 100,000 households, 1,000 firms, 20 sectors,
   25 private banks, explicit employer-worker links, a directed supplier network,
   household behavior rules, expectation rules, wage offers, matching friction,
   rule switching, intermediate-input inventories, delivery failures, supplier
-  rewiring, sector summaries, and a one-time +100 bps policy-rate shock. This is
-  still a reduced-scale browser run; the 1,000,000 household target belongs to
-  the offline research engine.
+  rewiring, sector summaries, mortgage pass-through, housing prices,
+  construction demand, firm equity values, household portfolio choice, bank
+  credit tightness, and a one-time +100 bps policy-rate shock. This is still a
+  reduced-scale browser run; the 1,000,000 household target belongs to the
+  offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -78,6 +80,17 @@ households:
   central_bank_credibility: 0.55
   target_inflation_annual: 0.02
   debt_service_sensitivity: 0.42
+credit_housing_equity:
+  variable_mortgage_share: 0.88
+  mortgage_spread_bps: 185
+  fixed_mortgage_repricing_speed: 0.08
+  housing_supply_elasticity: 0.28
+  construction_demand_sensitivity: 0.38
+  wealth_effect_strength: 0.16
+  collateral_effect_strength: 0.24
+  equity_risk_premium: 0.045
+  portfolio_rebalance_speed: 0.18
+  calibration_status: stylized_norway_first_until_mortgage_housing_portfolio_data_are_added
 outputs:
   include_paths:
     - inflation
@@ -93,5 +106,12 @@ outputs:
     - delivery_failure_rate
     - supplier_rewire_share
     - input_inventory_index
+    - mortgage_rate
+    - housing_price_index
+    - construction_output_index
+    - equity_price_index
+    - household_net_worth_index
+    - collateral_constraint_index
+    - bank_credit_tightness
   monte_carlo_seeds: 20
   store_microstate: false

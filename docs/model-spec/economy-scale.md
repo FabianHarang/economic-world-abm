@@ -6,7 +6,7 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 3 browser target:
+Current Milestone 4 browser target:
 
 - 100,000 households;
 - 1,000 firms;
@@ -18,7 +18,11 @@ Current Milestone 3 browser target:
 - wage offers and matching friction;
 - intermediate-input inventories;
 - delivery failures, backlogs, and supplier rewiring;
-- sector-level supply-chain summaries.
+- sector-level supply-chain summaries;
+- variable/fixed mortgage exposure;
+- housing price, construction, and equity-price channels;
+- household portfolio choice and collateral effects;
+- bank credit tightness.
 
 This is intentionally at the high end of browser-scale work and should move to a Web Worker before richer household-period updates, Monte Carlo runs, or local calibration sweeps are added.
 

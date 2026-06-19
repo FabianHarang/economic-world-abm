@@ -194,11 +194,17 @@
   line-height: 1.65;
 }
 
-.results-section {
+.results-section,
+.asset-section {
   background: var(--amor-mist);
   border-bottom: 1px solid var(--amor-line);
   border-top: 1px solid var(--amor-line);
   padding: var(--amor-space-8) 0;
+}
+
+.asset-section {
+  background: var(--amor-paper);
+  border-top: 0;
 }
 
 .controls-section {
@@ -324,6 +330,99 @@
 .chart-stack {
   display: grid;
   gap: var(--amor-space-4);
+}
+
+.chart-grid {
+  display: grid;
+  gap: var(--amor-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--amor-space-5);
+}
+
+.asset-panel {
+  display: grid;
+  gap: var(--amor-space-5);
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.asset-visual {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  min-height: 260px;
+  overflow: hidden;
+  padding: var(--amor-space-4);
+}
+
+.asset-visual svg {
+  display: block;
+  width: 100%;
+}
+
+.asset-link {
+  stroke: var(--amor-amber);
+  stroke-linecap: round;
+  stroke-width: 3;
+  stroke-opacity: 0.68;
+}
+
+.asset-node-shadow {
+  fill: rgb(193 143 73 / 12%);
+}
+
+.asset-node {
+  fill: var(--amor-teal);
+  stroke: var(--amor-paper-pure);
+  stroke-width: 3;
+}
+
+.asset-node-index {
+  fill: var(--amor-paper-pure);
+  font-family: var(--amor-font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.asset-node-label {
+  fill: var(--amor-ink);
+  font-size: 0.72rem;
+}
+
+.asset-stats {
+  display: grid;
+  gap: var(--amor-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.asset-stat {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  min-width: 0;
+  padding: var(--amor-space-4);
+}
+
+.asset-stat span {
+  color: var(--amor-slate);
+  display: block;
+  font-family: var(--amor-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.asset-stat strong {
+  color: var(--amor-petrol);
+  display: block;
+  font-family: var(--amor-font-display);
+  font-size: 1.65rem;
+  margin: var(--amor-space-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.asset-stat small {
+  color: var(--amor-ink-soft);
+  line-height: 1.45;
 }
 
 .network-panel {
@@ -471,6 +570,8 @@
   .hero-grid,
   .results-grid,
   .controls-grid,
+  .asset-panel,
+  .chart-grid,
   .network-panel,
   .metric-grid,
   .work-grid {
@@ -484,6 +585,10 @@
   }
 
   .control-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asset-stats {
     grid-template-columns: minmax(0, 1fr);
   }
 

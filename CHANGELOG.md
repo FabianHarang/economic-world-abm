@@ -34,3 +34,11 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added sector summaries for output, prices, input costs, inventory coverage, backlog pressure, and delivery failures.
 - Added aggregate network summaries and browser metrics for delivery failures, rewired edges, backlog index, and input inventory.
 - Added a production-network visualization and supply-chain controls to the AMOR web app.
+
+## 0.5.0 - 2026-06-19
+
+- Added Milestone 4 mortgage market state with variable/fixed mortgage exposure, mortgage pass-through, and household mortgage debt service.
+- Added stylized housing price, construction demand, construction output, firm equity valuation, and household portfolio choice channels.
+- Added collateral headroom and asset-wealth effects in household consumption rules.
+- Added bank mortgage/firm-loan books and bank credit tightness feeding firm credit costs.
+- Added asset-channel controls, charts, and a Milestone 4 dashboard panel in the web app.

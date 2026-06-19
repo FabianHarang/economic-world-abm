@@ -6,6 +6,7 @@ import {
 } from "../accounting/invariants";
 import { createSeededRng } from "../random/seededRng";
 import type {
+  AssetMarketSummary,
   ExpectationRuleMix,
   HouseholdRuleMix,
   NetworkSummary,
@@ -44,6 +45,11 @@ interface EconomyArrays {
   readonly expectationRule: Int8Array;
   readonly deposits: Float64Array;
   readonly debt: Float64Array;
+  readonly householdBank: Int16Array;
+  readonly mortgageDebt: Float64Array;
+  readonly homeValue: Float64Array;
+  readonly variableMortgageShare: Float32Array;
+  readonly equityHoldings: Float64Array;
   readonly consumptionHabit: Float64Array;
   readonly inflationExpectation: Float32Array;
   readonly firmSector: Int16Array;
@@ -60,6 +66,7 @@ interface EconomyArrays {
   readonly firmOutput: Float64Array;
   readonly firmCash: Float64Array;
   readonly firmDebt: Float64Array;
+  readonly firmEquityValue: Float64Array;
   readonly firmInventory: Float64Array;
   readonly firmInputRequirement: Float32Array;
   readonly firmInputInventory: Float64Array;
@@ -75,19 +82,29 @@ interface EconomyArrays {
   readonly firmDefaulted: Uint8Array;
   readonly sectorWeights: Float64Array;
   readonly sectorOutputBaseline: Float64Array;
+  readonly bankCapital: Float64Array;
+  readonly bankMortgageBook: Float64Array;
+  readonly bankFirmLoanBook: Float64Array;
+  readonly bankCreditTightness: Float32Array;
+  readonly assetState: AssetMarketState;
   readonly supplierNetwork: SupplierNetwork;
   readonly unemployedPool: number[];
   readonly layoffCursor: Int32Array;
   readonly baselineConsumption: number;
   readonly baselineDeposits: number;
   readonly baselineInputInventory: number;
+  readonly baselineHomeValue: number;
+  readonly baselineMortgageDebt: number;
+  readonly baselineEquityHoldings: number;
+  readonly baselineFirmEquityValue: number;
+  readonly baselineNetWorth: number;
+  readonly baselineConstructionOutput: number;
 }
 
 interface HouseholdPeriod {
   readonly consumptionIndex: number;
   readonly averageInflationExpectation: number;
   readonly householdDepositsIndex: number;
-  readonly householdDebtServiceRatio: number;
   readonly ruleMix: HouseholdRuleMix;
   readonly budgetConsistent: boolean;
 }
@@ -101,6 +118,45 @@ interface SupplyChainPeriod {
   readonly supplierRewireShare: number;
   readonly backlogIndex: number;
   readonly inputInventoryIndex: number;
+}
+
+interface MortgageRatePeriod {
+  readonly variableMortgageRateAnnual: number;
+  readonly fixedMortgageRateAnnual: number;
+  readonly averageMortgageRateAnnual: number;
+  readonly variableMortgageShare: number;
+}
+
+interface AssetMarketState {
+  housingPriceIndex: number;
+  previousHousingPriceIndex: number;
+  equityPriceIndex: number;
+  previousEquityPriceIndex: number;
+  fixedMortgageRateAnnual: number;
+  constructionDemandIndex: number;
+  averageCreditTightness: number;
+  previousMortgageDebt: number;
+}
+
+interface AssetMarketPeriod {
+  readonly housingPriceIndex: number;
+  readonly housingPriceGrowthAnnualized: number;
+  readonly equityPriceIndex: number;
+  readonly equityReturnAnnualized: number;
+  readonly constructionOutputIndex: number;
+}
+
+interface HouseholdAssetSummary {
+  readonly householdNetWorthIndex: number;
+  readonly mortgageDebtServiceRatio: number;
+  readonly householdDebtServiceRatio: number;
+  readonly collateralConstraintIndex: number;
+  readonly riskyAssetShare: number;
+  readonly mortgageCreditGrowthAnnualized: number;
+}
+
+interface BankCreditPeriod {
+  readonly averageCreditTightness: number;
 }
 
 export function runSimulation(config: ScenarioConfig): SimulationResult {
@@ -122,11 +178,13 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
   let cumulativeRewiredEdges = 0;
   let householdBudgetConsistent = true;
   let lastSupplyChainPeriod: SupplyChainPeriod | undefined;
+  updateBankCredit(config, economy);
 
   for (let period = 0; period < config.periods; period += 1) {
     const policyRateAnnual = policyRateForPeriod(config, period);
     const loanRateAnnual = policyRateAnnual + 0.018 + 0.004 * Math.sin(period / 9);
     const policyShockAnnual = Math.max(0, policyRateAnnual - config.policyRateAnnual);
+    const mortgageRates = updateMortgageRates(config, economy, policyRateAnnual);
 
     const householdPeriod = updateHouseholds(
       config,
@@ -134,6 +192,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       previousInflationAnnualized,
       policyRateAnnual,
       loanRateAnnual,
+      mortgageRates,
       previousConsumptionIndex,
       rng
     );
@@ -157,7 +216,8 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       rng,
       policyShockAnnual,
       householdPeriod.consumptionIndex,
-      householdPeriod.averageInflationExpectation
+      householdPeriod.averageInflationExpectation,
+      economy.assetState.constructionDemandIndex
     );
 
     recomputePayroll(economy);
@@ -168,9 +228,24 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       supplyChainPeriod,
       loanRateAnnual,
       policyShockAnnual,
-      householdPeriod.consumptionIndex
+      householdPeriod.consumptionIndex,
+      economy.assetState.constructionDemandIndex
     );
     cumulativeBankruptcies += firmPeriod.bankruptcies;
+
+    const assetPeriod = updateAssetMarkets(
+      config,
+      economy,
+      policyShockAnnual,
+      mortgageRates.averageMortgageRateAnnual,
+      loanRateAnnual,
+      householdPeriod.consumptionIndex,
+      firmPeriod.supplyChainStress,
+      firmPeriod.totalOutput,
+      baseOutput
+    );
+    const bankPeriod = updateBankCredit(config, economy);
+    const householdAssetSummary = summarizeHouseholdAssets(economy, mortgageRates);
 
     const cpi = computeCpi(economy.firmPrice, economy.firmSector, economy.sectorWeights);
     const ppi = computeAverage(economy.firmPrice);
@@ -214,6 +289,19 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       layoffs: totalLayoffs,
       bankruptcies: cumulativeBankruptcies,
       creditGrowthAnnualized,
+      mortgageCreditGrowthAnnualized: householdAssetSummary.mortgageCreditGrowthAnnualized,
+      mortgageRateAnnual: mortgageRates.averageMortgageRateAnnual,
+      variableMortgageShare: mortgageRates.variableMortgageShare,
+      housingPriceIndex: assetPeriod.housingPriceIndex,
+      housingPriceGrowthAnnualized: assetPeriod.housingPriceGrowthAnnualized,
+      constructionOutputIndex: assetPeriod.constructionOutputIndex,
+      equityPriceIndex: assetPeriod.equityPriceIndex,
+      equityReturnAnnualized: assetPeriod.equityReturnAnnualized,
+      householdNetWorthIndex: householdAssetSummary.householdNetWorthIndex,
+      mortgageDebtServiceRatio: householdAssetSummary.mortgageDebtServiceRatio,
+      collateralConstraintIndex: householdAssetSummary.collateralConstraintIndex,
+      riskyAssetShare: householdAssetSummary.riskyAssetShare,
+      bankCreditTightness: bankPeriod.averageCreditTightness,
       supplyChainStress: firmPeriod.supplyChainStress,
       backlogIndex: supplyChainPeriod.backlogIndex,
       deliveryFailureRate: supplyChainPeriod.deliveryFailureRate,
@@ -225,7 +313,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       averageInflationExpectation: householdPeriod.averageInflationExpectation,
       wageGrowthAnnualized,
       householdDepositsIndex: householdPeriod.householdDepositsIndex,
-      householdDebtServiceRatio: householdPeriod.householdDebtServiceRatio,
+      householdDebtServiceRatio: householdAssetSummary.householdDebtServiceRatio,
       handToMouthShare: householdPeriod.ruleMix.handToMouth,
       liquidityBufferShare: householdPeriod.ruleMix.liquidityBuffer,
       habitShare: householdPeriod.ruleMix.habit,
@@ -262,6 +350,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
     cumulativeRewiredEdges,
     lastSupplyChainPeriod
   );
+  const assetSummary = summarizeAssetMarkets(finalPoint);
 
   return {
     metadata: {
@@ -278,11 +367,12 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
         periods: config.periods,
         supplierEdges: economy.supplierNetwork.supplierId.length
       },
-      generatedAt: "deterministic-milestone-3"
+      generatedAt: "deterministic-milestone-4"
     },
     path,
     sectors: sectorSummaries,
     network: networkSummary,
+    assets: assetSummary,
     diagnostics: {
       employerWorkerConsistent,
       payrollConsistent,
@@ -306,6 +396,12 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
       finalBacklogIndex: finalPoint.backlogIndex,
       finalDeliveryFailureRate: finalPoint.deliveryFailureRate,
       finalInputInventoryIndex: finalPoint.inputInventoryIndex,
+      finalHousingPriceIndex: finalPoint.housingPriceIndex,
+      finalEquityPriceIndex: finalPoint.equityPriceIndex,
+      finalConstructionOutputIndex: finalPoint.constructionOutputIndex,
+      finalMortgageDebtServiceRatio: finalPoint.mortgageDebtServiceRatio,
+      finalHouseholdNetWorthIndex: finalPoint.householdNetWorthIndex,
+      finalBankCreditTightness: finalPoint.bankCreditTightness,
       finalConsumptionIndex: finalPoint.consumptionIndex,
       finalAverageInflationExpectation: finalPoint.averageInflationExpectation,
       finalRuleMix: {
@@ -333,6 +429,7 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const firmOutput = new Float64Array(config.firms);
   const firmCash = new Float64Array(config.firms);
   const firmDebt = new Float64Array(config.firms);
+  const firmEquityValue = new Float64Array(config.firms);
   const firmInventory = new Float64Array(config.firms);
   const firmInputRequirement = new Float32Array(config.firms);
   const firmInputInventory = new Float64Array(config.firms);
@@ -347,7 +444,22 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const firmMarkup = new Float32Array(config.firms);
   const firmDefaulted = new Uint8Array(config.firms);
   const sectorOutputBaseline = new Float64Array(config.sectors);
+  const bankCapital = new Float64Array(config.banks);
+  const bankMortgageBook = new Float64Array(config.banks);
+  const bankFirmLoanBook = new Float64Array(config.banks);
+  const bankCreditTightness = new Float32Array(config.banks);
+  const assetState: AssetMarketState = {
+    housingPriceIndex: 1,
+    previousHousingPriceIndex: 1,
+    equityPriceIndex: 1,
+    previousEquityPriceIndex: 1,
+    fixedMortgageRateAnnual: config.policyRateAnnual + (config.mortgageSpreadBps ?? 185) / 10_000,
+    constructionDemandIndex: 1,
+    averageCreditTightness: 0.15,
+    previousMortgageDebt: 1
+  };
   let baselineInputInventory = 0;
+  let baselineFirmEquityValue = 0;
 
   for (let f = 0; f < config.firms; f += 1) {
     const sector = f % config.sectors;
@@ -367,6 +479,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmQuality[f] = 0.65 + rng.nextFloat() * 0.35;
     firmInputCostIndex[f] = 1;
     firmReliability[f] = clamp(0.96 - firmStage[f] * 0.018 - rng.nextFloat() * 0.16, 0.68, 0.98);
+    firmEquityValue[f] = Math.max(1, firmCash[f] + firmCapital[f] * firmPrice[f] * 28 - firmDebt[f] * 0.55);
+    baselineFirmEquityValue += firmEquityValue[f];
   }
 
   const employerId = new Int32Array(config.households);
@@ -376,6 +490,11 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const expectationRule = new Int8Array(config.households);
   const deposits = new Float64Array(config.households);
   const debt = new Float64Array(config.households);
+  const householdBank = new Int16Array(config.households);
+  const mortgageDebt = new Float64Array(config.households);
+  const homeValue = new Float64Array(config.households);
+  const variableMortgageShare = new Float32Array(config.households);
+  const equityHoldings = new Float64Array(config.households);
   const consumptionHabit = new Float64Array(config.households);
   const inflationExpectation = new Float32Array(config.households);
   const unemployedPool: number[] = [];
@@ -384,6 +503,10 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const expectationMix = normalizeExpectationRuleMix(config.expectationRuleMix);
   let baselineConsumption = 0;
   let baselineDeposits = 0;
+  let baselineHomeValue = 0;
+  let baselineMortgageDebt = 0;
+  let baselineEquityHoldings = 0;
+  let baselineNetWorth = 0;
 
   for (let h = 0; h < config.households; h += 1) {
     householdBehavior[h] = drawBehaviorType(behaviorMix, rng.nextFloat());
@@ -392,8 +515,28 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     consumptionHabit[h] = 42 + rng.nextFloat() * 48;
     deposits[h] = consumptionHabit[h] * (1.5 + rng.nextFloat() * 7.5);
     debt[h] = rng.nextFloat() < 0.58 ? consumptionHabit[h] * (4 + rng.nextFloat() * 38) : 0;
+    householdBank[h] = h % config.banks;
+    const homeowner = rng.nextFloat() < 0.66;
+    if (homeowner) {
+      homeValue[h] = consumptionHabit[h] * (95 + rng.nextFloat() * 135);
+      mortgageDebt[h] = homeValue[h] * (0.34 + rng.nextFloat() * 0.42);
+      const variableTilt = rng.nextFloat() < (config.variableMortgageShare ?? 0.88) ? 1 : 0;
+      variableMortgageShare[h] = variableTilt === 1 ? 0.75 + rng.nextFloat() * 0.25 : rng.nextFloat() * 0.2;
+    } else {
+      homeValue[h] = 0;
+      mortgageDebt[h] = 0;
+      variableMortgageShare[h] = 0;
+    }
+    const portfolioBase = deposits[h] + Math.max(0, homeValue[h] - mortgageDebt[h]) * 0.04;
+    const riskyShare = clamp(0.08 + (portfolioBase / Math.max(1, consumptionHabit[h] * 300)) * 0.18, 0.02, 0.32);
+    equityHoldings[h] = portfolioBase * riskyShare;
+    deposits[h] = Math.max(0, deposits[h] - equityHoldings[h] * 0.35);
     baselineConsumption += consumptionHabit[h];
     baselineDeposits += deposits[h];
+    baselineHomeValue += homeValue[h];
+    baselineMortgageDebt += mortgageDebt[h];
+    baselineEquityHoldings += equityHoldings[h];
+    baselineNetWorth += deposits[h] + equityHoldings[h] + Math.max(0, homeValue[h] - mortgageDebt[h]) - debt[h];
 
     const employed = rng.nextFloat() > initialUnemploymentRate;
     if (employed) {
@@ -434,6 +577,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
   const sectorWeights = createSectorWeights(config.sectors);
   const supplierNetwork = generateSupplierNetwork(config, firmSector, rng);
   const layoffCursor = new Int32Array(config.firms);
+  const baselineConstructionOutput = Math.max(1, sectorOutputBaseline[constructionSectorId(config.sectors)]);
+  assetState.previousMortgageDebt = Math.max(1, baselineMortgageDebt);
   recomputePayroll({
     employerId,
     wage,
@@ -449,6 +594,11 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     expectationRule,
     deposits,
     debt,
+    householdBank,
+    mortgageDebt,
+    homeValue,
+    variableMortgageShare,
+    equityHoldings,
     consumptionHabit,
     inflationExpectation,
     firmSector,
@@ -465,6 +615,7 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmOutput,
     firmCash,
     firmDebt,
+    firmEquityValue,
     firmInventory,
     firmInputRequirement,
     firmInputInventory,
@@ -480,13 +631,276 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     firmDefaulted,
     sectorWeights,
     sectorOutputBaseline,
+    bankCapital,
+    bankMortgageBook,
+    bankFirmLoanBook,
+    bankCreditTightness,
+    assetState,
     supplierNetwork,
     unemployedPool,
     layoffCursor,
     baselineConsumption: Math.max(1, baselineConsumption),
     baselineDeposits: Math.max(1, baselineDeposits),
-    baselineInputInventory: Math.max(1, baselineInputInventory)
+    baselineInputInventory: Math.max(1, baselineInputInventory),
+    baselineHomeValue: Math.max(1, baselineHomeValue),
+    baselineMortgageDebt: Math.max(1, baselineMortgageDebt),
+    baselineEquityHoldings: Math.max(1, baselineEquityHoldings),
+    baselineFirmEquityValue: Math.max(1, baselineFirmEquityValue),
+    baselineNetWorth: Math.max(1, baselineNetWorth),
+    baselineConstructionOutput
   };
+}
+
+function updateMortgageRates(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  policyRateAnnual: number
+): MortgageRatePeriod {
+  const spread = (config.mortgageSpreadBps ?? 185) / 10_000;
+  const variableMortgageRateAnnual = policyRateAnnual + spread + economy.assetState.averageCreditTightness * 0.006;
+  const repricingSpeed = clamp(config.fixedMortgageRepricingSpeed ?? 0.08, 0, 1);
+  economy.assetState.fixedMortgageRateAnnual =
+    economy.assetState.fixedMortgageRateAnnual * (1 - repricingSpeed) + variableMortgageRateAnnual * repricingSpeed;
+  const variableMortgageShare = aggregateVariableMortgageShare(economy);
+  return {
+    variableMortgageRateAnnual,
+    fixedMortgageRateAnnual: economy.assetState.fixedMortgageRateAnnual,
+    averageMortgageRateAnnual:
+      variableMortgageShare * variableMortgageRateAnnual +
+      (1 - variableMortgageShare) * economy.assetState.fixedMortgageRateAnnual,
+    variableMortgageShare
+  };
+}
+
+function updateAssetMarkets(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  policyShockAnnual: number,
+  mortgageRateAnnual: number,
+  loanRateAnnual: number,
+  consumptionIndex: number,
+  supplyChainStress: number,
+  totalOutput: number,
+  baseOutput: number
+): AssetMarketPeriod {
+  const state = economy.assetState;
+  const previousHousingPriceIndex = state.housingPriceIndex;
+  const previousEquityPriceIndex = state.equityPriceIndex;
+  const constructionOutputIndex = computeConstructionOutputIndex(config, economy);
+  const housingSupplyElasticity = clamp(config.housingSupplyElasticity ?? 0.28, 0, 1);
+  const demandSignal = clamp(consumptionIndex - 1, -0.35, 0.35);
+  const constructionShortage = clamp(1 - constructionOutputIndex / 100, -0.4, 0.7);
+  const creditSignal = clamp(0.22 - state.averageCreditTightness, -0.35, 0.35);
+  const monthlyHousingChange =
+    0.0012 +
+    demandSignal * 0.02 +
+    constructionShortage * (0.012 + housingSupplyElasticity * 0.018) +
+    creditSignal * 0.006 -
+    Math.max(0, mortgageRateAnnual - config.policyRateAnnual - 0.012) * 0.08 -
+    policyShockAnnual * 0.16;
+  state.previousHousingPriceIndex = previousHousingPriceIndex;
+  state.housingPriceIndex *= clamp(1 + monthlyHousingChange, 0.955, 1.045);
+  const housingReturn = state.housingPriceIndex / Math.max(0.001, previousHousingPriceIndex);
+  for (let h = 0; h < economy.homeValue.length; h += 1) {
+    economy.homeValue[h] *= housingReturn;
+  }
+
+  let firmEquitySum = 0;
+  const outputIndex = totalOutput / Math.max(1, baseOutput);
+  const discountRate = loanRateAnnual + (config.equityRiskPremium ?? 0.045);
+  for (let f = 0; f < economy.firmEquityValue.length; f += 1) {
+    const earningsProxy = economy.firmOutput[f] * economy.firmPrice[f] * 22 - economy.firmWageBill[f] * 0.12;
+    const fundamental = Math.max(
+      1,
+      (economy.firmCash[f] + earningsProxy * clamp(outputIndex, 0.55, 1.55) - economy.firmDebt[f] * 0.55) /
+        Math.max(0.35, 1 + discountRate * 4)
+    );
+    economy.firmEquityValue[f] = economy.firmEquityValue[f] * 0.86 + fundamental * 0.14;
+    firmEquitySum += economy.firmEquityValue[f];
+  }
+
+  state.previousEquityPriceIndex = previousEquityPriceIndex;
+  const rawEquityIndex = firmEquitySum / economy.baselineFirmEquityValue;
+  const equityStressDiscount = 1 - clamp(policyShockAnnual * 2.6 + supplyChainStress * 0.12, 0, 0.35);
+  const transformedEquityIndex = 1 + Math.log(Math.max(0.2, rawEquityIndex)) * 0.11;
+  const targetEquityIndex = clamp(transformedEquityIndex * equityStressDiscount, 0.42, 1.75);
+  state.equityPriceIndex = previousEquityPriceIndex * 0.82 + targetEquityIndex * 0.18;
+  const equityReturn = state.equityPriceIndex / Math.max(0.001, previousEquityPriceIndex);
+  for (let h = 0; h < economy.equityHoldings.length; h += 1) {
+    economy.equityHoldings[h] *= equityReturn;
+  }
+
+  state.constructionDemandIndex = clamp(
+    1 +
+      (state.housingPriceIndex - 1) * 0.36 -
+      Math.max(0, mortgageRateAnnual - config.policyRateAnnual - 0.01) * 2.4 -
+      state.averageCreditTightness * 0.28 +
+      demandSignal * 0.22,
+    0.55,
+    1.45
+  );
+
+  return {
+    housingPriceIndex: state.housingPriceIndex,
+    housingPriceGrowthAnnualized: Math.log(state.housingPriceIndex / Math.max(0.001, previousHousingPriceIndex)) * 12,
+    equityPriceIndex: state.equityPriceIndex,
+    equityReturnAnnualized: Math.log(state.equityPriceIndex / Math.max(0.001, previousEquityPriceIndex)) * 12,
+    constructionOutputIndex
+  };
+}
+
+function updateBankCredit(config: ScenarioConfig, economy: EconomyArrays): BankCreditPeriod {
+  economy.bankMortgageBook.fill(0);
+  economy.bankFirmLoanBook.fill(0);
+  economy.bankCapital.fill(0);
+  const mortgageStressByBank = new Float64Array(config.banks);
+  const mortgageHouseholdsByBank = new Int32Array(config.banks);
+
+  for (let h = 0; h < economy.householdBank.length; h += 1) {
+    const bank = economy.householdBank[h];
+    economy.bankMortgageBook[bank] += economy.mortgageDebt[h];
+    if (economy.homeValue[h] > 0) {
+      const ltv = economy.mortgageDebt[h] / economy.homeValue[h];
+      mortgageStressByBank[bank] += clamp((ltv - 0.72) / 0.28, 0, 1.8);
+      mortgageHouseholdsByBank[bank] += 1;
+    }
+  }
+
+  for (let f = 0; f < config.firms; f += 1) {
+    const bank = economy.firmBank[f];
+    economy.bankFirmLoanBook[bank] += economy.firmDebt[f];
+  }
+
+  let tightnessSum = 0;
+  for (let bank = 0; bank < config.banks; bank += 1) {
+    const mortgageBook = economy.bankMortgageBook[bank];
+    const firmLoanBook = economy.bankFirmLoanBook[bank];
+    const assets = mortgageBook + firmLoanBook;
+    const capital = 0.082 * assets + 4_000 + (bank % 5) * 375;
+    const mortgageStress = mortgageStressByBank[bank] / Math.max(1, mortgageHouseholdsByBank[bank]);
+    const firmStress = firmLoanBook / Math.max(1, firmLoanBook + capital * 8);
+    economy.bankCapital[bank] = Math.max(1, capital * (1 - mortgageStress * 0.22));
+    const capitalRatio = economy.bankCapital[bank] / Math.max(1, assets);
+    const tightness = clamp(0.11 + mortgageStress * 0.46 + firmStress * 0.12 + Math.max(0, 0.085 - capitalRatio) * 3.2, 0.04, 0.72);
+    economy.bankCreditTightness[bank] = tightness;
+    tightnessSum += tightness;
+  }
+
+  economy.assetState.averageCreditTightness = tightnessSum / config.banks;
+  return { averageCreditTightness: economy.assetState.averageCreditTightness };
+}
+
+function summarizeHouseholdAssets(economy: EconomyArrays, mortgageRates: MortgageRatePeriod): HouseholdAssetSummary {
+  let netWorth = 0;
+  let totalMortgageDebt = 0;
+  let totalMortgageService = 0;
+  let totalDebtService = 0;
+  let totalIncomeProxy = 0;
+  let collateralStress = 0;
+  let equityHoldings = 0;
+  let deposits = 0;
+
+  for (let h = 0; h < economy.employerId.length; h += 1) {
+    const mortgageRate =
+      economy.variableMortgageShare[h] * mortgageRates.variableMortgageRateAnnual +
+      (1 - economy.variableMortgageShare[h]) * mortgageRates.fixedMortgageRateAnnual;
+    const mortgageService = economy.mortgageDebt[h] * (mortgageRate / 12 + 0.0028);
+    const consumerService = economy.debt[h] * (0.006 + 0.004);
+    const homeEquity = Math.max(0, economy.homeValue[h] - economy.mortgageDebt[h]);
+    const ltv = economy.homeValue[h] > 0 ? economy.mortgageDebt[h] / economy.homeValue[h] : 0;
+    const incomeProxy = (economy.employerId[h] >= 0 ? economy.wage[h] : economy.consumptionHabit[h] * 0.26) + 1;
+    totalMortgageDebt += economy.mortgageDebt[h];
+    totalMortgageService += mortgageService;
+    totalDebtService += mortgageService + consumerService;
+    totalIncomeProxy += incomeProxy;
+    collateralStress += economy.homeValue[h] > 0 ? clamp((ltv - 0.72) / 0.28, 0, 1.8) : 0;
+    equityHoldings += economy.equityHoldings[h];
+    deposits += economy.deposits[h];
+    netWorth += economy.deposits[h] + economy.equityHoldings[h] + homeEquity - economy.debt[h];
+  }
+
+  const riskyDenominator = Math.max(1, equityHoldings + deposits);
+  const mortgageCreditGrowthAnnualized =
+    ((totalMortgageDebt - economy.assetState.previousMortgageDebt) / Math.max(1, economy.assetState.previousMortgageDebt)) * 12;
+  economy.assetState.previousMortgageDebt = totalMortgageDebt;
+
+  return {
+    householdNetWorthIndex: netWorth / economy.baselineNetWorth,
+    mortgageDebtServiceRatio: totalMortgageService / Math.max(1, totalIncomeProxy),
+    householdDebtServiceRatio: totalDebtService / Math.max(1, totalIncomeProxy),
+    collateralConstraintIndex: collateralStress / economy.employerId.length,
+    riskyAssetShare: equityHoldings / riskyDenominator,
+    mortgageCreditGrowthAnnualized
+  };
+}
+
+function summarizeAssetMarkets(finalPoint: SimulationPoint): AssetMarketSummary {
+  return {
+    housingPriceIndex: finalPoint.housingPriceIndex,
+    equityPriceIndex: finalPoint.equityPriceIndex,
+    constructionOutputIndex: finalPoint.constructionOutputIndex,
+    mortgageRateAnnual: finalPoint.mortgageRateAnnual,
+    mortgageDebtServiceRatio: finalPoint.mortgageDebtServiceRatio,
+    mortgageCreditGrowthAnnualized: finalPoint.mortgageCreditGrowthAnnualized,
+    householdNetWorthIndex: finalPoint.householdNetWorthIndex,
+    riskyAssetShare: finalPoint.riskyAssetShare,
+    collateralConstraintIndex: finalPoint.collateralConstraintIndex,
+    bankCreditTightness: finalPoint.bankCreditTightness,
+    variableMortgageShare: finalPoint.variableMortgageShare
+  };
+}
+
+function rebalancePortfolio(
+  config: ScenarioConfig,
+  economy: EconomyArrays,
+  household: number,
+  policyRateAnnual: number,
+  debtServiceRatio: number,
+  homeEquity: number
+): void {
+  const rebalanceSpeed = clamp(config.portfolioRebalanceSpeed ?? 0.18, 0, 1) / 12;
+  const liquidWealth = economy.deposits[household] + economy.equityHoldings[household];
+  if (liquidWealth <= 0) {
+    return;
+  }
+
+  const wealthBuffer = clamp((homeEquity + liquidWealth) / Math.max(1, economy.consumptionHabit[household] * 180), 0, 2);
+  const targetRiskyShare = clamp(
+    0.08 + wealthBuffer * 0.12 - Math.max(0, policyRateAnnual - 0.025) * 0.9 - debtServiceRatio * 0.18,
+    0.02,
+    0.42
+  );
+  const targetEquity = liquidWealth * targetRiskyShare;
+  const trade = (targetEquity - economy.equityHoldings[household]) * rebalanceSpeed;
+
+  if (trade > 0) {
+    const buy = Math.min(economy.deposits[household], trade);
+    economy.deposits[household] -= buy;
+    economy.equityHoldings[household] += buy;
+  } else if (trade < 0) {
+    const sell = Math.min(economy.equityHoldings[household], -trade);
+    economy.equityHoldings[household] -= sell;
+    economy.deposits[household] += sell;
+  }
+}
+
+function aggregateVariableMortgageShare(economy: EconomyArrays): number {
+  let mortgageDebt = 0;
+  let variableDebt = 0;
+  for (let h = 0; h < economy.mortgageDebt.length; h += 1) {
+    mortgageDebt += economy.mortgageDebt[h];
+    variableDebt += economy.mortgageDebt[h] * economy.variableMortgageShare[h];
+  }
+  return variableDebt / Math.max(1, mortgageDebt);
+}
+
+function computeConstructionOutputIndex(config: ScenarioConfig, economy: EconomyArrays): number {
+  const sector = constructionSectorId(config.sectors);
+  let output = 0;
+  for (let f = sector; f < config.firms; f += config.sectors) {
+    output += economy.firmOutput[f];
+  }
+  return (output / economy.baselineConstructionOutput) * 100;
 }
 
 function updateHouseholds(
@@ -495,28 +909,34 @@ function updateHouseholds(
   previousInflationAnnualized: number,
   policyRateAnnual: number,
   loanRateAnnual: number,
+  mortgageRates: MortgageRatePeriod,
   previousConsumptionIndex: number,
   rng: ReturnType<typeof createSeededRng>
 ): HouseholdPeriod {
   let totalConsumption = 0;
   let totalExpectation = 0;
   let totalDeposits = 0;
-  let totalDebtService = 0;
-  let totalIncome = 0;
   let budgetConsistent = true;
   const ruleCounts = { handToMouth: 0, liquidityBuffer: 0, habit: 0, debtStress: 0 };
   const targetInflation = config.targetInflationAnnual ?? 0.02;
   const credibility = clamp(config.centralBankCredibility ?? 0.55, 0, 1);
   const debtServiceSensitivity = config.debtServiceSensitivity ?? 0.42;
   const switchingIntensity = clamp(config.ruleSwitchingIntensity ?? 0.18, 0, 1);
+  const wealthEffectStrength = clamp(config.wealthEffectStrength ?? 0.16, 0, 1);
+  const collateralEffectStrength = clamp(config.collateralEffectStrength ?? 0.24, 0, 1);
 
   for (let h = 0; h < economy.employerId.length; h += 1) {
     const employer = economy.employerId[h];
     const wageIncome = employer >= 0 ? economy.wage[h] * economy.hours[h] : economy.consumptionHabit[h] * 0.26;
     const interestIncome = economy.deposits[h] * Math.max(0, policyRateAnnual - 0.012) / 12;
-    const interestDue = economy.debt[h] * (loanRateAnnual / 12);
-    const principalDue = Math.min(economy.debt[h], economy.debt[h] * 0.004);
-    const debtService = interestDue + principalDue;
+    const consumerInterestDue = economy.debt[h] * (loanRateAnnual / 12);
+    const consumerPrincipalDue = Math.min(economy.debt[h], economy.debt[h] * 0.004);
+    const householdMortgageRate =
+      economy.variableMortgageShare[h] * mortgageRates.variableMortgageRateAnnual +
+      (1 - economy.variableMortgageShare[h]) * mortgageRates.fixedMortgageRateAnnual;
+    const mortgageInterestDue = economy.mortgageDebt[h] * (householdMortgageRate / 12);
+    const mortgagePrincipalDue = Math.min(economy.mortgageDebt[h], economy.mortgageDebt[h] * 0.0028);
+    const debtService = consumerInterestDue + consumerPrincipalDue + mortgageInterestDue + mortgagePrincipalDue;
     const expectation = updateInflationExpectation(
       economy,
       h,
@@ -527,7 +947,21 @@ function updateHouseholds(
     );
     economy.inflationExpectation[h] = expectation;
 
-    const incomeBeforeConsumption = economy.deposits[h] + wageIncome + interestIncome - debtService;
+    const homeEquity = Math.max(0, economy.homeValue[h] - economy.mortgageDebt[h]);
+    const ltv = economy.homeValue[h] > 0 ? economy.mortgageDebt[h] / economy.homeValue[h] : 0;
+    const collateralHeadroom = Math.max(0, economy.homeValue[h] * 0.82 - economy.mortgageDebt[h]);
+    const creditAvailability = clamp(1 - economy.assetState.averageCreditTightness, 0.15, 1);
+    const mortgageRateDrag = clamp(mortgageRates.averageMortgageRateAnnual - config.policyRateAnnual, 0, 0.08);
+    const collateralDraw =
+      collateralHeadroom *
+      collateralEffectStrength *
+      creditAvailability *
+      clamp(0.0014 - mortgageRateDrag * 0.01, 0.00015, 0.0014);
+    const wealthSignal =
+      (economy.assetState.housingPriceIndex - 1) * (economy.homeValue[h] > 0 ? 0.72 : 0) +
+      (economy.assetState.equityPriceIndex - 1) * (economy.equityHoldings[h] > 0 ? 0.38 : 0);
+    const collateralStress = clamp(Math.max(0, ltv - 0.78) * 1.8 + mortgageRateDrag * 2.5, 0, 0.45);
+    const incomeBeforeConsumption = economy.deposits[h] + wageIncome + interestIncome + collateralDraw - debtService;
     const debtServiceRatio = debtService / Math.max(1, wageIncome + interestIncome);
     const consumption = chooseConsumption(
       economy.householdBehavior[h],
@@ -537,7 +971,9 @@ function updateHouseholds(
       debtServiceRatio,
       economy.consumptionHabit[h],
       expectation,
-      debtServiceSensitivity
+      debtServiceSensitivity,
+      wealthSignal * wealthEffectStrength,
+      collateralStress
     );
     const boundedConsumption = clamp(consumption, 0, Math.max(0, incomeBeforeConsumption));
     const newDeposits = incomeBeforeConsumption - boundedConsumption;
@@ -547,8 +983,10 @@ function updateHouseholds(
     }
 
     economy.deposits[h] = Math.max(0, newDeposits);
-    economy.debt[h] = Math.max(0, economy.debt[h] - principalDue);
+    economy.debt[h] = Math.max(0, economy.debt[h] - consumerPrincipalDue);
+    economy.mortgageDebt[h] = Math.max(0, economy.mortgageDebt[h] + collateralDraw - mortgagePrincipalDue);
     economy.consumptionHabit[h] = 0.88 * economy.consumptionHabit[h] + 0.12 * boundedConsumption;
+    rebalancePortfolio(config, economy, h, policyRateAnnual, debtServiceRatio, homeEquity);
 
     if (rng.nextFloat() < switchingIntensity / 12) {
       economy.householdBehavior[h] = chooseNextBehavior(
@@ -564,8 +1002,6 @@ function updateHouseholds(
     totalConsumption += boundedConsumption;
     totalExpectation += expectation;
     totalDeposits += economy.deposits[h];
-    totalDebtService += debtService;
-    totalIncome += wageIncome + interestIncome;
     incrementRuleCount(ruleCounts, economy.householdBehavior[h]);
   }
 
@@ -574,7 +1010,6 @@ function updateHouseholds(
     consumptionIndex: totalConsumption / economy.baselineConsumption,
     averageInflationExpectation: totalExpectation / households,
     householdDepositsIndex: totalDeposits / economy.baselineDeposits,
-    householdDebtServiceRatio: totalDebtService / Math.max(1, totalIncome),
     ruleMix: {
       handToMouth: ruleCounts.handToMouth / households,
       liquidityBuffer: ruleCounts.liquidityBuffer / households,
@@ -591,7 +1026,8 @@ function updateLaborMarket(
   rng: ReturnType<typeof createSeededRng>,
   policyShockAnnual: number,
   consumptionIndex: number,
-  averageInflationExpectation: number
+  averageInflationExpectation: number,
+  constructionDemandIndex: number
 ): { hires: number; layoffs: number; vacancies: number } {
   let hires = 0;
   let layoffs = 0;
@@ -610,8 +1046,16 @@ function updateLaborMarket(
     const baseLabor = economy.firmBaseLabor[f];
     const demandSensitivity = 0.25 + stage * 0.08 + economy.firmWorkingCapitalExposure[f] * 0.18;
     const idiosyncraticDemand = (rng.nextFloat() - 0.5) * 0.035;
+    const constructionDemand =
+      economy.firmSector[f] === constructionSectorId(config.sectors)
+        ? (constructionDemandIndex - 1) * (config.constructionDemandSensitivity ?? 0.38)
+        : 0;
     const expectedDemand =
-      0.78 + demandIndex * 0.28 - policyShockAnnual * 2.8 * demandSensitivity + idiosyncraticDemand;
+      0.78 +
+      demandIndex * 0.28 +
+      constructionDemand -
+      policyShockAnnual * 2.8 * demandSensitivity +
+      idiosyncraticDemand;
     const desiredLabor = Math.max(1, Math.round(baseLabor * clamp(expectedDemand, 0.55, 1.45)));
     const currentLabor = economy.firmLabor[f];
     const laborTightness = economy.unemployedPool.length / Math.max(1, config.households);
@@ -761,7 +1205,8 @@ function updateFirms(
   supplyChainPeriod: SupplyChainPeriod,
   loanRateAnnual: number,
   policyShockAnnual: number,
-  consumptionIndex: number
+  consumptionIndex: number,
+  constructionDemandIndex: number
 ): {
   totalOutput: number;
   bankruptcies: number;
@@ -778,6 +1223,7 @@ function updateFirms(
   const costChannelStrength = config.costChannelStrength ?? 0.35;
   const inventoryBuffer = config.inventoryBufferMonths ?? 1.5;
   const demandMultiplier = clamp(0.62 + consumptionIndex * 0.42, 0.62, 1.28);
+  const constructionSector = constructionSectorId(config.sectors);
 
   for (let f = 0; f < config.firms; f += 1) {
     const labor = economy.firmLabor[f];
@@ -788,7 +1234,11 @@ function updateFirms(
     const shortageStress = Math.max(0, 1 - inputAvailability);
     const backlogStress = economy.firmBacklog[f] / Math.max(1, economy.firmInputTarget[f]);
     const inputStress = clamp(inputCostIndex - 1 + shortageStress * 0.68 + backlogStress * 0.18, -0.35, 0.9);
-    const plannedOutput = economy.firmProductivity[f] * laborCapacity * capitalCapacity * demandMultiplier;
+    const sectorDemandMultiplier =
+      economy.firmSector[f] === constructionSector
+        ? clamp(demandMultiplier * (0.82 + constructionDemandIndex * 0.22), 0.5, 1.45)
+        : demandMultiplier;
+    const plannedOutput = economy.firmProductivity[f] * laborCapacity * capitalCapacity * sectorDemandMultiplier;
     const inputNeeded = plannedOutput * economy.firmInputRequirement[f];
     const inputUsed = Math.min(economy.firmInputInventory[f], inputNeeded);
     const inputBottleneck = inputNeeded > 0 ? inputUsed / inputNeeded : 1;
@@ -804,7 +1254,8 @@ function updateFirms(
     totalOutput += output;
 
     const bankSpread = (economy.firmBank[f] % 7) * 0.0005;
-    const effectiveLoanRateAnnual = loanRateAnnual + bankSpread;
+    const creditTightness = economy.bankCreditTightness[economy.firmBank[f]];
+    const effectiveLoanRateAnnual = loanRateAnnual + bankSpread + creditTightness * 0.018;
     const wageBill = economy.firmWageBill[f];
     const inputCost = output * inputCostIndex * (0.24 + economy.firmInputRequirement[f] * 0.88);
     const workingCapitalNeed = Math.max(0, wageBill + inputCost - economy.firmCash[f] * 0.18);
@@ -829,7 +1280,7 @@ function updateFirms(
 
     const revenue = output * economy.firmPrice[f] * 100;
     totalDebtBefore += economy.firmDebt[f];
-    const newDebt = Math.max(0, workingCapitalNeed * 0.12 - economy.firmCash[f] * 0.05);
+    const newDebt = Math.max(0, workingCapitalNeed * clamp(0.14 - creditTightness * 0.08, 0.04, 0.14) - economy.firmCash[f] * 0.05);
     economy.firmDebt[f] += newDebt;
     economy.firmCash[f] += revenue - wageBill - inputCost - workingCapitalCost;
     economy.firmInventory[f] = clamp(economy.firmInventory[f] + output - labor * inventoryBuffer * 0.08, 0, 1_000_000);
@@ -944,25 +1395,29 @@ function chooseConsumption(
   debtServiceRatio: number,
   habit: number,
   expectation: number,
-  debtServiceSensitivity: number
+  debtServiceSensitivity: number,
+  wealthEffect: number,
+  collateralStress: number
 ): number {
   if (available <= 0) {
     return 0;
   }
 
+  const assetAdjustment = clamp(1 + wealthEffect - collateralStress, 0.72, 1.18);
+
   switch (behavior) {
     case Behavior.HandToMouth:
-      return available * clamp(0.9 + expectation * 0.7, 0.78, 0.97);
+      return available * clamp(0.9 + expectation * 0.7, 0.78, 0.97) * assetAdjustment;
     case Behavior.LiquidityBuffer: {
       const targetBuffer = habit * 6;
       const bufferGap = clamp((targetBuffer - deposits) / Math.max(1, targetBuffer), -0.5, 1);
-      return available * clamp(0.68 - bufferGap * 0.22 - expectation * 0.35, 0.36, 0.78);
+      return available * clamp(0.68 - bufferGap * 0.22 - expectation * 0.35, 0.36, 0.78) * assetAdjustment;
     }
     case Behavior.Habit:
-      return clamp(habit * (0.92 + expectation * 0.8), available * 0.35, available * 0.9);
+      return clamp(habit * (0.92 + expectation * 0.8) * assetAdjustment, available * 0.35, available * 0.9);
     case Behavior.DebtStress: {
       const stressCut = debtServiceSensitivity * debtServiceRatio + Math.min(0.18, debt / Math.max(1, deposits + habit * 12) * 0.025);
-      return available * clamp(0.74 - stressCut, 0.28, 0.78);
+      return available * clamp(0.74 - stressCut - collateralStress * 0.16, 0.28, 0.78) * clamp(1 + wealthEffect * 0.4, 0.88, 1.08);
     }
     default:
       return available * 0.7;
@@ -1322,6 +1777,10 @@ function drawReplacementSupplier(
     supplier = (supplier + config.sectors) % config.firms;
   }
   return supplier;
+}
+
+function constructionSectorId(sectors: number): number {
+  return Math.min(sectors - 1, Math.max(0, Math.floor(sectors * 0.5)));
 }
 
 function stageForSector(sector: number, sectors: number): number {

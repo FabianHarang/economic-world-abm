@@ -45,6 +45,15 @@ export interface ScenarioConfig {
   readonly centralBankCredibility?: number;
   readonly targetInflationAnnual?: number;
   readonly debtServiceSensitivity?: number;
+  readonly variableMortgageShare?: number;
+  readonly mortgageSpreadBps?: number;
+  readonly fixedMortgageRepricingSpeed?: number;
+  readonly housingSupplyElasticity?: number;
+  readonly constructionDemandSensitivity?: number;
+  readonly wealthEffectStrength?: number;
+  readonly collateralEffectStrength?: number;
+  readonly equityRiskPremium?: number;
+  readonly portfolioRebalanceSpeed?: number;
 }
 
 export interface SimulationMetadata {
@@ -80,6 +89,19 @@ export interface SimulationPoint {
   readonly layoffs: number;
   readonly bankruptcies: number;
   readonly creditGrowthAnnualized: number;
+  readonly mortgageCreditGrowthAnnualized: number;
+  readonly mortgageRateAnnual: number;
+  readonly variableMortgageShare: number;
+  readonly housingPriceIndex: number;
+  readonly housingPriceGrowthAnnualized: number;
+  readonly constructionOutputIndex: number;
+  readonly equityPriceIndex: number;
+  readonly equityReturnAnnualized: number;
+  readonly householdNetWorthIndex: number;
+  readonly mortgageDebtServiceRatio: number;
+  readonly collateralConstraintIndex: number;
+  readonly riskyAssetShare: number;
+  readonly bankCreditTightness: number;
   readonly supplyChainStress: number;
   readonly backlogIndex: number;
   readonly deliveryFailureRate: number;
@@ -121,11 +143,26 @@ export interface NetworkSummary {
   readonly inputInventoryIndex: number;
 }
 
+export interface AssetMarketSummary {
+  readonly housingPriceIndex: number;
+  readonly equityPriceIndex: number;
+  readonly constructionOutputIndex: number;
+  readonly mortgageRateAnnual: number;
+  readonly mortgageDebtServiceRatio: number;
+  readonly mortgageCreditGrowthAnnualized: number;
+  readonly householdNetWorthIndex: number;
+  readonly riskyAssetShare: number;
+  readonly collateralConstraintIndex: number;
+  readonly bankCreditTightness: number;
+  readonly variableMortgageShare: number;
+}
+
 export interface SimulationResult {
   readonly metadata: SimulationMetadata;
   readonly path: readonly SimulationPoint[];
   readonly sectors: readonly SectorSummary[];
   readonly network: NetworkSummary;
+  readonly assets: AssetMarketSummary;
   readonly diagnostics: {
     readonly employerWorkerConsistent: boolean;
     readonly payrollConsistent: boolean;
@@ -144,6 +181,12 @@ export interface SimulationResult {
     readonly finalBacklogIndex: number;
     readonly finalDeliveryFailureRate: number;
     readonly finalInputInventoryIndex: number;
+    readonly finalHousingPriceIndex: number;
+    readonly finalEquityPriceIndex: number;
+    readonly finalConstructionOutputIndex: number;
+    readonly finalMortgageDebtServiceRatio: number;
+    readonly finalHouseholdNetWorthIndex: number;
+    readonly finalBankCreditTightness: number;
     readonly finalConsumptionIndex: number;
     readonly finalAverageInflationExpectation: number;
     readonly finalRuleMix: HouseholdRuleMix;
@@ -151,8 +194,8 @@ export interface SimulationResult {
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_3_browser_100k",
-  modelVersion: "0.4.0",
+  scenarioName: "milestone_4_browser_100k",
+  modelVersion: "0.5.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,
@@ -190,7 +233,16 @@ export const firstStructuralDemoConfig: ScenarioConfig = {
   ruleSwitchingIntensity: 0.18,
   centralBankCredibility: 0.55,
   targetInflationAnnual: 0.02,
-  debtServiceSensitivity: 0.42
+  debtServiceSensitivity: 0.42,
+  variableMortgageShare: 0.88,
+  mortgageSpreadBps: 185,
+  fixedMortgageRepricingSpeed: 0.08,
+  housingSupplyElasticity: 0.28,
+  constructionDemandSensitivity: 0.38,
+  wealthEffectStrength: 0.16,
+  collateralEffectStrength: 0.24,
+  equityRiskPremium: 0.045,
+  portfolioRebalanceSpeed: 0.18
 };
 
 export const researchScaleMilestoneConfig: ScenarioConfig = {

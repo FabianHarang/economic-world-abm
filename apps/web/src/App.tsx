@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { firstStructuralDemoConfig, researchScaleMilestoneConfig, runSimulation } from "@world-abm/core";
 import type { ScenarioConfig } from "@world-abm/core";
+import { AssetChannelsPanel } from "./components/AssetChannelsPanel";
 import { ControlSlider } from "./components/ControlSlider";
 import { MetricTile } from "./components/MetricTile";
 import { PathChart } from "./components/PathChart";
@@ -21,6 +22,17 @@ export function App() {
   );
   const [supplierRewireRate, setSupplierRewireRate] = useState(firstStructuralDemoConfig.supplierRewireRate ?? 0.16);
   const [inputSubstitution, setInputSubstitution] = useState(firstStructuralDemoConfig.inputSubstitutionElasticity ?? 0.22);
+  const [variableMortgageShare, setVariableMortgageShare] = useState(firstStructuralDemoConfig.variableMortgageShare ?? 0.88);
+  const [wealthEffectStrength, setWealthEffectStrength] = useState(firstStructuralDemoConfig.wealthEffectStrength ?? 0.16);
+  const [collateralEffectStrength, setCollateralEffectStrength] = useState(
+    firstStructuralDemoConfig.collateralEffectStrength ?? 0.24
+  );
+  const [constructionDemandSensitivity, setConstructionDemandSensitivity] = useState(
+    firstStructuralDemoConfig.constructionDemandSensitivity ?? 0.38
+  );
+  const [portfolioRebalanceSpeed, setPortfolioRebalanceSpeed] = useState(
+    firstStructuralDemoConfig.portfolioRebalanceSpeed ?? 0.18
+  );
 
   const scenario = useMemo<ScenarioConfig>(
     () => ({
@@ -43,7 +55,12 @@ export function App() {
       inputInventoryTargetMonths: inputInventoryTarget,
       deliveryFailureSensitivity,
       supplierRewireRate,
-      inputSubstitutionElasticity: inputSubstitution
+      inputSubstitutionElasticity: inputSubstitution,
+      variableMortgageShare,
+      wealthEffectStrength,
+      collateralEffectStrength,
+      constructionDemandSensitivity,
+      portfolioRebalanceSpeed
     }),
     [
       anchoredExpectations,
@@ -55,8 +72,13 @@ export function App() {
       inputSubstitution,
       liquidityBuffer,
       matchingFriction,
+      collateralEffectStrength,
+      constructionDemandSensitivity,
+      portfolioRebalanceSpeed,
       ruleSwitching,
       supplierRewireRate,
+      variableMortgageShare,
+      wealthEffectStrength,
       wageIndexation
     ]
   );
@@ -97,7 +119,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 3 browser run</span>
+              <span className="snapshot-title">Milestone 4 browser run</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -137,14 +159,14 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 3</p>
-          <h2>Production-network status</h2>
+          <p className="amor-kicker">Milestone 4</p>
+          <h2>Credit and asset-channel status</h2>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Browser households" value={firstStructuralDemoConfig.households.toLocaleString()} detail="Typed-array Milestone 3 run" />
-          <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline/local-large target config" />
-          <MetricTile label="Delivery failures" value={`${(finalPoint.deliveryFailureRate * 100).toFixed(1)}%`} detail="Intermediate-input delivery attempts" />
-          <MetricTile label="Stressed sectors" value={stressedSectorCount.toLocaleString()} detail="Backlog or delivery-failure pressure" />
+          <MetricTile label="Mortgage rate" value={`${(finalPoint.mortgageRateAnnual * 100).toFixed(1)}%`} detail="Weighted variable/fixed household rate" />
+          <MetricTile label="Housing index" value={finalPoint.housingPriceIndex.toFixed(2)} detail="Stylized house-price path" />
+          <MetricTile label="Equity index" value={finalPoint.equityPriceIndex.toFixed(2)} detail="Firm valuation and portfolios" />
+          <MetricTile label="Construction output" value={finalPoint.constructionOutputIndex.toFixed(0)} detail="Housing-linked sector output" />
         </div>
       </section>
 
@@ -152,9 +174,9 @@ export function App() {
         <div className="amor-shell controls-grid">
           <div>
             <p className="amor-kicker">Interactive controls</p>
-            <h2>Behavior and supply chains</h2>
+            <h2>Behavior, supply, and assets</h2>
           </div>
-          <form className="control-panel" aria-label="Milestone 3 behavior and supply-chain controls">
+          <form className="control-panel" aria-label="Milestone 4 behavior, supply-chain, and asset controls">
             <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
             <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
             <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
@@ -167,6 +189,11 @@ export function App() {
             <ControlSlider label="Delivery fragility" value={deliveryFailureSensitivity} onChange={setDeliveryFailureSensitivity} />
             <ControlSlider label="Supplier rewiring" value={supplierRewireRate} onChange={setSupplierRewireRate} />
             <ControlSlider label="Input substitution" value={inputSubstitution} onChange={setInputSubstitution} />
+            <ControlSlider label="Variable mortgages" value={variableMortgageShare} onChange={setVariableMortgageShare} />
+            <ControlSlider label="Wealth effect" value={wealthEffectStrength} onChange={setWealthEffectStrength} />
+            <ControlSlider label="Collateral effect" value={collateralEffectStrength} onChange={setCollateralEffectStrength} />
+            <ControlSlider label="Construction sensitivity" value={constructionDemandSensitivity} onChange={setConstructionDemandSensitivity} />
+            <ControlSlider label="Portfolio rebalancing" value={portfolioRebalanceSpeed} onChange={setPortfolioRebalanceSpeed} />
           </form>
         </div>
       </section>
@@ -174,12 +201,12 @@ export function App() {
       <section className="results-section">
         <div className="amor-shell results-grid">
           <div>
-            <p className="amor-kicker">Seeded Milestone 3 result</p>
+            <p className="amor-kicker">Seeded Milestone 4 result</p>
             <h2>Metadata before conclusions</h2>
             <p>
               The current browser run is a stylized 100,000-household ABM with household rules, expectations,
-              employer-worker links, intermediate-input inventories, supplier rewiring, delivery failures, and CPI
-              construction before Norway/EU calibration.
+              employer-worker links, intermediate-input inventories, mortgage pass-through, housing and equity prices,
+              household portfolios, collateral effects, and CPI construction before Norway/EU calibration.
             </p>
             <ul className="metadata-list">
               <li>Model version: {result.metadata.modelVersion}</li>
@@ -191,6 +218,8 @@ export function App() {
               <li>Expected inflation: {(finalPoint.averageInflationExpectation * 100).toFixed(2)} percent</li>
               <li>Delivery attempts: {result.network.deliveryAttempts.toLocaleString()}</li>
               <li>Supplier rewires: {result.network.rewiredEdges.toLocaleString()}</li>
+              <li>Variable mortgage exposure: {(finalPoint.variableMortgageShare * 100).toFixed(1)} percent</li>
+              <li>Bank credit tightness: {(finalPoint.bankCreditTightness * 100).toFixed(1)} percent</li>
             </ul>
           </div>
           <div className="chart-stack">
@@ -199,9 +228,40 @@ export function App() {
               path={result.path}
               metric="backlogIndex"
               title="Supply-chain backlog path"
-              caption="Backlog pressure from missed intermediate-input deliveries and inventory shortfalls in the seeded Milestone 3 run."
+              caption="Backlog pressure from missed intermediate-input deliveries and inventory shortfalls in the seeded Milestone 4 run."
               multiplier={100}
               ceiling={10}
+              variant="amber"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="asset-section">
+        <div className="amor-shell">
+          <div className="section-heading">
+            <p className="amor-kicker">Credit and asset prices</p>
+            <h2>Mortgage, housing, construction, and equity channels</h2>
+          </div>
+          <AssetChannelsPanel result={result} />
+          <div className="chart-grid">
+            <PathChart
+              path={result.path}
+              metric="housingPriceIndex"
+              title="Housing price index"
+              caption="House-price path from mortgage pass-through, collateral conditions, and construction supply pressure."
+              multiplier={100}
+              floor={85}
+              ceiling={125}
+            />
+            <PathChart
+              path={result.path}
+              metric="equityPriceIndex"
+              title="Firm equity index"
+              caption="Equity valuation path from firm cash flow, leverage, discount rates, and household portfolio exposure."
+              multiplier={100}
+              floor={60}
+              ceiling={140}
               variant="amber"
             />
           </div>
@@ -216,23 +276,24 @@ export function App() {
         <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
         <div className="work-grid">
           <article>
-            <h3>Input bottlenecks</h3>
-            <p>Intermediate-input inventories now constrain firm production when deliveries fail or backlogs build.</p>
+            <h3>Mortgage market</h3>
+            <p>Variable and fixed mortgage shares convert policy rates into household debt service.</p>
           </article>
           <article>
-            <h3>Supplier rewiring</h3>
-            <p>Firms can replace failed supplier links while preserving an upstream bias in the production graph.</p>
+            <h3>Housing and construction</h3>
+            <p>House prices and credit conditions feed construction demand in the synthetic construction sector.</p>
           </article>
           <article>
-            <h3>Sector reporting</h3>
-            <p>Each sector reports output, input-cost pressure, inventory coverage, backlogs, and delivery failures.</p>
+            <h3>Equity and portfolios</h3>
+            <p>Firm equity valuation changes household portfolio wealth and risky-asset allocation.</p>
           </article>
         </div>
         <p className="final-metric">
-          Final Milestone 3 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
-          backlog index {finalPoint.backlogIndex.toFixed(2)}, delivery failures{" "}
-          {(finalPoint.deliveryFailureRate * 100).toFixed(1)} percent, unemployment{" "}
-          {(finalPoint.unemploymentRate * 100).toFixed(2)} percent.
+          Final Milestone 4 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
+          housing index {finalPoint.housingPriceIndex.toFixed(2)}, equity index {finalPoint.equityPriceIndex.toFixed(2)},
+          mortgage DSR {(finalPoint.mortgageDebtServiceRatio * 100).toFixed(1)} percent, unemployment{" "}
+          {(finalPoint.unemploymentRate * 100).toFixed(2)} percent. Stressed supply-chain sectors:{" "}
+          {stressedSectorCount.toLocaleString()}.
         </p>
       </section>
     </main>
