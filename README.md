@@ -25,9 +25,9 @@ GitHub Pages is static hosting, so the project uses two scales:
 - **Browser scale:** interactive, reduced-size simulations in TypeScript/Web Workers.
 - **Research scale:** offline Python/Rust-compatible experiments with struct-of-arrays layouts, sparse production networks, deterministic seeds, and compressed summary artifacts for the website.
 
-Current Milestone 6 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, and paired-seed baseline/treatment rate-hike experiments.
+Current Milestone 7 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, paired-seed baseline/treatment rate-hike experiments, and a zoomable production-network explorer with local rewiring.
 
-Milestone 6 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, only after memory estimation confirms that the run is safe on the target machine.
+Milestone 7 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, with calibration and sensitivity scaffolding layered around the research runs.
 
 ## Calibration Direction
 
@@ -76,9 +76,15 @@ PYTHONPATH=research_engine python3 -m world_abm.validate \
   --config experiments/configs/research_scale_baseline.yaml \
   --scales 10000,50000,100000 \
   --periods 24
+PYTHONPATH=research_engine python3 -m world_abm.moments \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --targets experiments/calibration/target_moments_norway_stylized.json
+PYTHONPATH=research_engine python3 -m world_abm.sensitivity \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --out experiments/results/sensitivity
 ```
 
-The engine is standard-library Python in this milestone: typed arrays for household, firm, bank, and sparse-network state; firm-count employer-worker representation; and gzipped aggregate/sector JSONL outputs.
+The engine is standard-library Python in this milestone: typed arrays for household, firm, bank, and sparse-network state; firm-count employer-worker representation; gzipped aggregate/sector JSONL outputs; synthetic population and firm/network generators; moment matching; and sensitivity/phase-diagram sweeps.
 
 ## Repository Map
 

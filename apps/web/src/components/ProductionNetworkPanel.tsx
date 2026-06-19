@@ -33,7 +33,7 @@ export function ProductionNetworkPanel({ sectors, network }: ProductionNetworkPa
     .slice(0, 6);
 
   return (
-    <div className="network-panel" aria-label="Milestone 4 production network">
+    <div className="network-panel" aria-label="Production network summary">
       <div className="network-visual">
         <svg viewBox={`0 0 ${width} ${height}`} role="img">
           <title>Aggregate supplier stages</title>

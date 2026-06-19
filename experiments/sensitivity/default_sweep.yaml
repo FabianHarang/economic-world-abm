@@ -1,0 +1,14 @@
+schema_version: 0.8.0
+sweep_name: default_milestone_7_phase_diagram
+config: experiments/configs/research_scale_baseline.yaml
+x_parameter: variable_mortgage_share
+y_parameter: supplier_rewire_rate
+grid_size: 5
+development_scale:
+  households: 10000
+  firms: 100
+  periods: 18
+outputs:
+  results: experiments/results/sensitivity/sensitivity_results.jsonl.gz
+  summary: experiments/results/sensitivity/sensitivity_summary.json
+  phase_diagram: experiments/results/sensitivity/phase_diagram.csv

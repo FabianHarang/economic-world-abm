@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.8.0",
+  "accessed": "2026-06-19",
+  "sources": [
+    {
+      "id": "ssb_statbank",
+      "economy": "Norway",
+      "provider": "Statistics Norway",
+      "url": "https://www.ssb.no/en/statbank",
+      "candidate_moments": [
+        "inflation",
+        "unemployment",
+        "sectoral_employment",
+        "wages",
+        "household_debt",
+        "housing_prices"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Use only openly available tables and record table identifiers before redistribution."
+    },
+    {
+      "id": "norges_bank_statistics",
+      "economy": "Norway",
+      "provider": "Norges Bank",
+      "url": "https://www.norges-bank.no/en/topics/Statistics/",
+      "candidate_moments": [
+        "policy_rate",
+        "mortgage_rates",
+        "bank_lending_rates",
+        "credit_growth",
+        "financial_stability_indicators"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Record series names, retrieval date, and usage terms before redistribution."
+    },
+    {
+      "id": "eurostat_database",
+      "economy": "EU_Euro_area",
+      "provider": "Eurostat",
+      "url": "https://ec.europa.eu/eurostat/web/main/data/database",
+      "candidate_moments": [
+        "hicp",
+        "unemployment",
+        "input_output_tables",
+        "sectoral_employment",
+        "business_demography"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Use Eurostat dataset identifiers and document transformations."
+    },
+    {
+      "id": "ecb_data_portal",
+      "economy": "EU_Euro_area",
+      "provider": "European Central Bank",
+      "url": "https://data.ecb.europa.eu/",
+      "candidate_moments": [
+        "policy_rates",
+        "mortgage_rates",
+        "bank_lending",
+        "deposits",
+        "credit_growth"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Record dataflow, key, frequency, and retrieval date."
+    },
+    {
+      "id": "oecd_data_explorer",
+      "economy": "Norway_EU_comparison",
+      "provider": "OECD",
+      "url": "https://data-explorer.oecd.org/",
+      "candidate_moments": [
+        "national_accounts",
+        "productivity",
+        "household_income",
+        "prices",
+        "labor_market"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Use OECD metadata and citation requirements for each dataset."
+    },
+    {
+      "id": "bis_statistics",
+      "economy": "Norway_EU_comparison",
+      "provider": "Bank for International Settlements",
+      "url": "https://www.bis.org/statistics/index.htm",
+      "candidate_moments": [
+        "credit_to_private_sector",
+        "debt_service_ratios",
+        "property_prices",
+        "banking_statistics"
+      ],
+      "status": "official_source_registered_not_ingested",
+      "license_note": "Document series and redistribution rights before packaging derived data."
+    }
+  ]
+}

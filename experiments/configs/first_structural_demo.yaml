@@ -1,8 +1,8 @@
-schema_version: 0.7.0
-scenario_name: milestone_6_browser_companion_100k
-model_version: 0.7.0
+schema_version: 0.8.0
+scenario_name: milestone_7_browser_companion_100k
+model_version: 0.8.0
 description: >
-  Milestone 6 browser companion run: 100,000 households, 1,000 firms, 20
+  Milestone 7 browser companion run: 100,000 households, 1,000 firms, 20
   sectors, 25 private banks, explicit employer-worker links, a directed supplier
   network, household behavior rules, expectation rules, wage offers, matching
   friction, rule switching, intermediate-input inventories, delivery failures,

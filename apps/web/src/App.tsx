@@ -5,6 +5,7 @@ import { AssetChannelsPanel } from "./components/AssetChannelsPanel";
 import { CounterfactualChart } from "./components/CounterfactualChart";
 import { ControlSlider } from "./components/ControlSlider";
 import { MetricTile } from "./components/MetricTile";
+import { NetworkExplorer } from "./components/NetworkExplorer";
 import { PathChart } from "./components/PathChart";
 import { ProductionNetworkPanel } from "./components/ProductionNetworkPanel";
 
@@ -118,7 +119,7 @@ export function App() {
               <p className="hero-lede">
                 We use a large heterogeneous-agent ABM to study the inflation-interest-rate relationship across
                 households, firms, banks, employer-worker links, and production networks. Browser runs are reduced-scale;
-                Milestone 6 adds a separate offline engine for million-household research-scale experiments.
+                Milestone 7 adds calibration scaffolding, sensitivity sweeps, and an explorable production network.
               </p>
               <div className="hero-actions">
                 <a className="amor-button" href="#scaffold-status">
@@ -131,7 +132,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 6 research scale</span>
+              <span className="snapshot-title">Milestone 7 calibration lab</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -176,22 +177,22 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 6</p>
-          <h2>Research-scale offline engine</h2>
+          <p className="amor-kicker">Milestone 7</p>
+          <h2>Calibration and sensitivity lab</h2>
           <p className="section-note">
-            The new Python engine uses typed household, firm, bank, and sparse-network arrays, writes compressed
-            artifacts, and includes cross-scale validation before million-household runs are treated as research output.
+            The project now has a data-source registry, stylized Norway/EU parameter sets, synthetic population and
+            firm-network generators, moment matching, sensitivity sweeps, and phase-diagram outputs.
           </p>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Offline households" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Research-scale target" />
-          <MetricTile label="Offline firms" value={researchScaleMilestoneConfig.firms.toLocaleString()} detail="Array-oriented firm state" />
-          <MetricTile label="Sparse edges" value={researchSupplierEdges.toLocaleString()} detail="Compressed supplier network" />
-          <MetricTile label="Artifacts" value="JSONL.gz" detail="Aggregate and sector paths" />
+          <MetricTile label="Data sources" value="6" detail="Official registry entries" />
+          <MetricTile label="Parameter sets" value="3" detail="Stylized, Norway, EU/euro area" />
+          <MetricTile label="Phase grid" value="5 x 5" detail="Default sensitivity sweep" />
+          <MetricTile label="Network explorer" value="Live" detail="Zoom, inspect, rewire" />
         </div>
         <div className="metric-grid companion-grid">
-          <MetricTile label="Shock" value={`+${experiment.metadata.treatmentShockBps} bps`} detail="Treatment-minus-baseline policy path" />
-          <MetricTile label="Paired seeds" value={experiment.summary.seedCount.toLocaleString()} detail="Identical seeds; policy shock differs" />
+          <MetricTile label="Offline households" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Research-scale target" />
+          <MetricTile label="Sparse edges" value={researchSupplierEdges.toLocaleString()} detail="Compressed supplier network" />
           <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Mean treatment minus baseline" />
           <MetricTile label="Browser companion" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript path" />
         </div>
@@ -203,7 +204,7 @@ export function App() {
             <p className="amor-kicker">Interactive controls</p>
             <h2>Behavior, supply, and assets</h2>
           </div>
-          <form className="control-panel" aria-label="Milestone 6 browser companion controls">
+          <form className="control-panel" aria-label="Milestone 7 browser companion controls">
             <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
             <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
             <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
@@ -346,8 +347,16 @@ export function App() {
 
       <section className="amor-shell content-section">
         <div className="section-heading">
+          <p className="amor-kicker">Network explorer</p>
+          <h2>Zoom, inspect, and rewire sector links</h2>
+        </div>
+        <NetworkExplorer sectors={result.sectors} network={result.network} />
+      </section>
+
+      <section className="amor-shell content-section">
+        <div className="section-heading">
           <p className="amor-kicker">Supply-chain propagation</p>
-          <h2>Sector stress and rewiring</h2>
+          <h2>Sector stress summary</h2>
         </div>
         <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
         <div className="work-grid">

@@ -1,6 +1,6 @@
 [project]
 name = "world-abm-research-engine"
-version = "0.7.0"
+version = "0.8.0"
 description = "Offline research-scale engine for the Economic World ABM"
 requires-python = ">=3.12"
 dependencies = []

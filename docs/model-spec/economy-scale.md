@@ -6,7 +6,7 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 6 browser companion:
+Current Milestone 7 browser companion:
 
 - 100,000 households;
 - 1,000 firms;

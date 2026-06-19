@@ -1,0 +1,19 @@
+schema_version: 0.8.0
+parameter_set: norway_stylized
+economy_context: Norway
+calibration_status: stylized_norway_first
+source_registry: data/sources/calibration_sources.json
+notes:
+  - Norway is the first empirical calibration target.
+  - Variable mortgage exposure is set high because floating-rate mortgage prevalence is expected to dominate.
+  - Values remain stylized until SSB and Norges Bank series are ingested with table and series identifiers.
+targets:
+  final_inflation_annualized: 0.02
+  final_unemployment_rate: 0.04
+  final_output_index: 100
+parameters:
+  variable_mortgage_share: 0.90
+  mortgage_spread_bps: 185
+  supplier_rewire_rate: 0.08
+  wealth_effect_strength: 0.16
+  initial_unemployment_rate: 0.04

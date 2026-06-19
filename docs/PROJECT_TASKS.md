@@ -45,4 +45,4 @@ These are the initial GitHub issues or equivalent project tasks from the master 
 
 ## Current Focus
 
-Milestone 6 is active: the project now has a browser companion plus an offline research-scale engine. The next major focus is Milestone 7 calibration and sensitivity after the research engine, compressed artifacts, memory estimator, benchmark protocol, and cross-scale validation have been verified.
+Milestone 7 is active: the project now has a browser companion, offline research-scale engine, interactive network explorer, data-source registry, stylized parameter sets, synthetic generators, moment matching, and sensitivity/phase-diagram sweeps. The next major focus is Milestone 8 manuscript and polished site work after calibration sources and sensitivity outputs are expanded.

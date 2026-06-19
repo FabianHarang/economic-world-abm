@@ -59,3 +59,12 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added research-engine CLIs for running scenarios and cross-scale validation.
 - Updated local benchmark and memory-estimation scripts to use the Milestone 6 engine.
 - Updated the web app to present Milestone 6 as the research-scale offline layer while retaining the browser paired counterfactual companion.
+
+## 0.8.0 - 2026-06-19
+
+- Added a zoomable, pannable production-network explorer with node/link selection and local edge rewiring.
+- Added a Milestone 7 data-source registry for official Norway, EU/euro area, OECD, and BIS calibration sources.
+- Added stylized, Norway-first, and EU/euro-area parameter-set scaffolds.
+- Added synthetic household population and firm/network generators for calibration experiments.
+- Added moment-matching and sensitivity/phase-diagram CLIs to the research engine.
+- Updated the web app and docs for Milestone 7 calibration and sensitivity.

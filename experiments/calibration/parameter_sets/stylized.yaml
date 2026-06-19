@@ -1,0 +1,17 @@
+schema_version: 0.8.0
+parameter_set: stylized
+economy_context: stylized
+calibration_status: transparent_placeholder
+notes:
+  - Used for model development and debugging.
+  - Not an empirical Norway or EU calibration.
+targets:
+  final_inflation_annualized: 0.02
+  final_unemployment_rate: 0.05
+  final_output_index: 100
+parameters:
+  variable_mortgage_share: 0.65
+  mortgage_spread_bps: 185
+  supplier_rewire_rate: 0.10
+  wealth_effect_strength: 0.12
+  initial_unemployment_rate: 0.06

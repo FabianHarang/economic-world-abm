@@ -10,7 +10,7 @@ from typing import Any
 @dataclass(frozen=True)
 class ResearchScaleConfig:
     scenario_name: str = "research_scale_baseline"
-    model_version: str = "0.7.0"
+    model_version: str = "0.8.0"
     economy_context: str = "Norway"
     calibration_status: str = "staged"
     households: int = 1_000_000
@@ -72,7 +72,7 @@ def config_from_mapping(mapping: dict[str, Any]) -> ResearchScaleConfig:
 
     return ResearchScaleConfig(
         scenario_name=str(mapping.get("scenario_name", "research_scale_baseline")),
-        model_version=str(mapping.get("model_version", "0.7.0")),
+        model_version=str(mapping.get("model_version", "0.8.0")),
         economy_context=economy_context,
         calibration_status=str(economy.get("calibration_status", "staged")),
         households=int(scale.get("households", 1_000_000)),

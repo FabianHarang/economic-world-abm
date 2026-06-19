@@ -1,0 +1,18 @@
+schema_version: 0.8.0
+parameter_set: eu_euro_area_stylized
+economy_context: EU_Euro_area
+calibration_status: stylized_eu_second
+source_registry: data/sources/calibration_sources.json
+notes:
+  - EU and euro area assumptions follow Norway-specific calibration.
+  - Mortgage fixation and pass-through must be separated from Norway because fixed-rate prevalence is structurally different across many euro area countries.
+targets:
+  final_inflation_annualized: 0.02
+  final_unemployment_rate: 0.065
+  final_output_index: 100
+parameters:
+  variable_mortgage_share: 0.45
+  mortgage_spread_bps: 170
+  supplier_rewire_rate: 0.10
+  wealth_effect_strength: 0.12
+  initial_unemployment_rate: 0.065

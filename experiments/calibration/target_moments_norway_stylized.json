@@ -1,0 +1,18 @@
+{
+  "finalInflationAnnualized": {
+    "target": 0.02,
+    "weight": 1.0
+  },
+  "finalUnemploymentRate": {
+    "target": 0.04,
+    "weight": 0.8
+  },
+  "finalOutputIndex": {
+    "target": 100.0,
+    "weight": 0.45
+  },
+  "finalBankCreditTightness": {
+    "target": 0.12,
+    "weight": 0.35
+  }
+}
