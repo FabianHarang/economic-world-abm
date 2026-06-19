@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.9.0",
+  "milestone": 8,
+  "generatedDate": "2026-06-19",
+  "status": "manuscript_and_polished_site_scaffold",
+  "browserCompanion": {
+    "households": 100000,
+    "firms": 1000,
+    "banks": 25,
+    "sectors": 20,
+    "supplierEdges": 5000,
+    "features": [
+      "paired_seed_counterfactual",
+      "production_network_graph_explorer",
+      "labor_market_explorer",
+      "mortgage_housing_equity_channels",
+      "calibration_and_sensitivity_scaffolding"
+    ]
+  },
+  "researchTarget": {
+    "households": 1000000,
+    "firms": 5000,
+    "banks": 25,
+    "sectors": 25,
+    "supplierEdges": 75000
+  },
+  "calibrationStatus": "stylized_norway_first",
+  "siteWarningsRequired": true
+}

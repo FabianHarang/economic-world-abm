@@ -1,6 +1,6 @@
 # Research Engine
 
-The Milestone 6 research-scale engine runs offline simulations that are too large for GitHub Pages. It is a standard-library Python implementation with typed arrays, deterministic seeded randomness, sparse production networks, scalable employer-worker counts, and compressed aggregate/sector output.
+The research-scale engine runs offline simulations that are too large for GitHub Pages. It is a standard-library Python implementation with typed arrays, deterministic seeded randomness, sparse production networks, scalable employer-worker counts, and compressed aggregate/sector output.
 
 The browser app remains the interactive companion. Research-scale runs should be generated here, inspected, then curated into static artifacts only when needed.
 
@@ -50,9 +50,9 @@ Each run writes:
 
 Raw household microstate is not written by default.
 
-## Calibration Utilities
+## Calibration And Sensitivity Utilities
 
-Milestone 7 adds:
+The current research layer includes:
 
 - `world_abm.population`: synthetic household population generator;
 - `world_abm.firm_network`: firm and sparse supplier-network generator;

@@ -45,4 +45,4 @@ These are the initial GitHub issues or equivalent project tasks from the master 
 
 ## Current Focus
 
-Milestone 7 is active: the project now has a browser companion, offline research-scale engine, interactive network explorer, data-source registry, stylized parameter sets, synthetic generators, moment matching, and sensitivity/phase-diagram sweeps. The next major focus is Milestone 8 manuscript and polished site work after calibration sources and sensitivity outputs are expanded.
+Milestone 8 is active: the project now has a browser companion, offline research-scale engine, graph-analysis production-network explorer, labor-market explorer, data-source registry, stylized parameter sets, synthetic generators, moment matching, sensitivity/phase-diagram sweeps, manuscript draft map, literature review anchors, limitations, reproducibility guide, and AMOR audit notes. The next major focus is expanding calibrated data ingestion and producing curated static research-scale outputs for the site.

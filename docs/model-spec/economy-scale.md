@@ -6,7 +6,7 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 7 browser companion:
+Current Milestone 8 browser companion:
 
 - 100,000 households;
 - 1,000 firms;
@@ -25,6 +25,8 @@ Current Milestone 7 browser companion:
 - bank credit tightness;
 - paired-seed baseline/treatment rate-hike experiments;
 - treatment-minus-baseline plots and browser-scale uncertainty bands.
+- graph-analysis production-network explorer with draggable sectors, path highlighting, systemic-sector ranking, and local rewiring;
+- labor-market explorer for employer-worker transmission.
 
 This is intentionally at the high end of browser-scale work. It remains the interactive companion for inspecting mechanisms while research-scale runs move to the offline engine.
 

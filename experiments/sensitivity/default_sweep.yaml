@@ -1,5 +1,5 @@
-schema_version: 0.8.0
-sweep_name: default_milestone_7_phase_diagram
+schema_version: 0.9.0
+sweep_name: default_milestone_8_phase_diagram
 config: experiments/configs/research_scale_baseline.yaml
 x_parameter: variable_mortgage_share
 y_parameter: supplier_rewire_rate

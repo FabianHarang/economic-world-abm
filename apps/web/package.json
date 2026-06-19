@@ -1,6 +1,6 @@
 {
   "name": "@world-abm/web",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,8 +10,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@world-abm/core": "0.8.0",
-    "@world-abm/ui": "0.8.0",
+    "@world-abm/core": "0.9.0",
+    "@world-abm/ui": "0.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

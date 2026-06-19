@@ -2,6 +2,15 @@
 
 All notable changes to `economic-world-abm` will be documented here.
 
+## 0.9.0 - 2026-06-19
+
+- Upgraded the production-network explorer with draggable sectors, layout switching, neighborhood focus, path highlighting, systemic-sector ranking, minimap, and local edge rewiring.
+- Added a labor-market explorer for employer-worker transmission, vacancies, layoffs, unemployment, consumption pressure, and wage growth.
+- Added a Milestone 8 manuscript/reproducibility panel to the site.
+- Added manuscript chapters for introduction, literature review, results discussion, limitations, and reproducibility.
+- Added a Milestone 8 AMOR design audit and small static-site summary artifact.
+- Bumped model, package, and research-engine versions to 0.9.0.
+
 ## 0.1.0 - 2026-06-18
 
 - Created the initial repository scaffold.

@@ -4,6 +4,8 @@ import type { ScenarioConfig } from "@world-abm/core";
 import { AssetChannelsPanel } from "./components/AssetChannelsPanel";
 import { CounterfactualChart } from "./components/CounterfactualChart";
 import { ControlSlider } from "./components/ControlSlider";
+import { LaborMarketExplorer } from "./components/LaborMarketExplorer";
+import { ManuscriptPanel } from "./components/ManuscriptPanel";
 import { MetricTile } from "./components/MetricTile";
 import { NetworkExplorer } from "./components/NetworkExplorer";
 import { PathChart } from "./components/PathChart";
@@ -119,7 +121,8 @@ export function App() {
               <p className="hero-lede">
                 We use a large heterogeneous-agent ABM to study the inflation-interest-rate relationship across
                 households, firms, banks, employer-worker links, and production networks. Browser runs are reduced-scale;
-                Milestone 7 adds calibration scaffolding, sensitivity sweeps, and an explorable production network.
+                Milestone 8 adds the research-manuscript surface, a stronger graph-analysis explorer, and labor-market
+                exploration around the browser companion.
               </p>
               <div className="hero-actions">
                 <a className="amor-button" href="#scaffold-status">
@@ -132,7 +135,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 7 calibration lab</span>
+              <span className="snapshot-title">Milestone 8 research lab</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -177,18 +180,18 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 7</p>
-          <h2>Calibration and sensitivity lab</h2>
+          <p className="amor-kicker">Milestone 8</p>
+          <h2>Manuscript and explorer lab</h2>
           <p className="section-note">
-            The project now has a data-source registry, stylized Norway/EU parameter sets, synthetic population and
-            firm-network generators, moment matching, sensitivity sweeps, and phase-diagram outputs.
+            The project now has a manuscript/reproducibility surface, stylized Norway/EU calibration scaffolding,
+            sensitivity sweeps, a graph-analysis production-network explorer, and a labor-market explorer.
           </p>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Data sources" value="6" detail="Official registry entries" />
-          <MetricTile label="Parameter sets" value="3" detail="Stylized, Norway, EU/euro area" />
-          <MetricTile label="Phase grid" value="5 x 5" detail="Default sensitivity sweep" />
-          <MetricTile label="Network explorer" value="Live" detail="Zoom, inspect, rewire" />
+          <MetricTile label="Manuscript" value="12" detail="Draft chapters and guides" />
+          <MetricTile label="Literature" value="4" detail="Verified starting anchors" />
+          <MetricTile label="Network explorer" value="Graph" detail="Drag, path, rank, rewire" />
+          <MetricTile label="Labor explorer" value="Live" detail="Employer-worker flow view" />
         </div>
         <div className="metric-grid companion-grid">
           <MetricTile label="Offline households" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Research-scale target" />
@@ -204,7 +207,7 @@ export function App() {
             <p className="amor-kicker">Interactive controls</p>
             <h2>Behavior, supply, and assets</h2>
           </div>
-          <form className="control-panel" aria-label="Milestone 7 browser companion controls">
+          <form className="control-panel" aria-label="Milestone 8 browser companion controls">
             <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
             <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
             <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
@@ -348,9 +351,27 @@ export function App() {
       <section className="amor-shell content-section">
         <div className="section-heading">
           <p className="amor-kicker">Network explorer</p>
-          <h2>Zoom, inspect, and rewire sector links</h2>
+          <h2>Graph analysis of sector links</h2>
         </div>
         <NetworkExplorer sectors={result.sectors} network={result.network} />
+      </section>
+
+      <section className="labor-section">
+        <div className="amor-shell">
+          <div className="section-heading">
+            <p className="amor-kicker">Labor-market explorer</p>
+            <h2>Employer-worker transmission</h2>
+          </div>
+          <LaborMarketExplorer result={result} />
+        </div>
+      </section>
+
+      <section className="amor-shell content-section">
+        <div className="section-heading">
+          <p className="amor-kicker">Milestone 8 manuscript</p>
+          <h2>Research notes, limitations, and reproducibility</h2>
+        </div>
+        <ManuscriptPanel result={result} experiment={experiment} />
       </section>
 
       <section className="amor-shell content-section">

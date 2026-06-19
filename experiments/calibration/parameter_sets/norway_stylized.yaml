@@ -1,4 +1,4 @@
-schema_version: 0.8.0
+schema_version: 0.9.0
 parameter_set: norway_stylized
 economy_context: Norway
 calibration_status: stylized_norway_first

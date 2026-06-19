@@ -25,9 +25,9 @@ GitHub Pages is static hosting, so the project uses two scales:
 - **Browser scale:** interactive, reduced-size simulations in TypeScript/Web Workers.
 - **Research scale:** offline Python/Rust-compatible experiments with struct-of-arrays layouts, sparse production networks, deterministic seeds, and compressed summary artifacts for the website.
 
-Current Milestone 7 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, paired-seed baseline/treatment rate-hike experiments, and a zoomable production-network explorer with local rewiring.
+Current Milestone 8 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, paired-seed baseline/treatment rate-hike experiments, a graph-analysis production-network explorer with local rewiring, and a labor-market explorer.
 
-Milestone 7 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, with calibration and sensitivity scaffolding layered around the research runs.
+Milestone 8 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, with calibration, sensitivity, manuscript, and reproducibility scaffolding layered around the research runs.
 
 ## Calibration Direction
 
@@ -85,6 +85,15 @@ PYTHONPATH=research_engine python3 -m world_abm.sensitivity \
 ```
 
 The engine is standard-library Python in this milestone: typed arrays for household, firm, bank, and sparse-network state; firm-count employer-worker representation; gzipped aggregate/sector JSONL outputs; synthetic population and firm/network generators; moment matching; and sensitivity/phase-diagram sweeps.
+
+## Milestone 8 Site And Manuscript
+
+Milestone 8 adds the first research-manuscript surface and stronger exploration tools:
+
+- production-network graph explorer with draggable sectors, neighborhood focus, path highlighting, systemic-sector ranking, layout switching, minimap, and local edge rewiring;
+- labor-market explorer for employer-worker transmission, vacancies, layoffs, unemployment, consumption pressure, and wage growth;
+- manuscript chapters for introduction, literature review, results discussion, limitations, and reproducibility;
+- AMOR design audit notes and a small static-site summary artifact.
 
 ## Repository Map
 

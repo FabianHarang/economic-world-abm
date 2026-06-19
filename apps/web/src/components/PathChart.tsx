@@ -27,7 +27,7 @@ export function PathChart({
   path,
   metric = "inflationAnnualized",
   title = "Annualized inflation path",
-  caption = "Inflation path from the deterministic Milestone 7 browser companion. This remains a stylized architecture run, not a calibrated Norway/EU result.",
+  caption = "Inflation path from the deterministic Milestone 8 browser companion. This remains a stylized architecture run, not a calibrated Norway/EU result.",
   multiplier = 100,
   floor = 0,
   ceiling = 4,
