@@ -1,18 +1,18 @@
-schema_version: 0.9.0
-scenario_name: milestone_8_research_site_100k
-model_version: 0.9.0
+schema_version: 0.10.0
+scenario_name: milestone_9_presentation_site_100k
+model_version: 0.10.0
 description: >
-  Milestone 8 browser companion run: 100,000 households, 1,000 firms, 20
+  Milestone 9 browser companion run: 100,000 households, 1,000 firms, 20
   sectors, 25 private banks, explicit employer-worker links, a directed supplier
   network, household behavior rules, expectation rules, wage offers, matching
   friction, rule switching, intermediate-input inventories, delivery failures,
   supplier rewiring, sector summaries, mortgage pass-through, housing prices,
   construction demand, firm equity values, household portfolio choice, bank
   credit tightness, paired-seed baseline/treatment rate-hike experiments, and a
-  one-time +100 bps policy-rate shock. Milestone 8 adds the research-manuscript
-  site surface, graph-analysis network explorer, and labor-market explorer. This
-  remains an interactive companion; the 1,000,000 household target belongs to the
-  offline research engine.
+  one-time +100 bps policy-rate shock. Milestone 9 adds the structured
+  presentation workspace for overview, simulator, network, labor, and manuscript
+  views. This remains an interactive companion; the 1,000,000 household target
+  belongs to the offline research engine.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area

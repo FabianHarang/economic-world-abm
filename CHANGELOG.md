@@ -2,6 +2,14 @@
 
 All notable changes to `economic-world-abm` will be documented here.
 
+## 0.10.0 - 2026-06-19
+
+- Added the Milestone 9 structured research workspace with Overview, Simulator, Networks, Labor, and Manuscript views.
+- Reworked the web app presentation so the page no longer lists every model surface in one long scroll.
+- Collapsed scenario controls behind a dedicated Simulator view and grouped result, graph, labor, and manuscript surfaces.
+- Added a Milestone 9 presentation manifest for future static-site result artifacts.
+- Bumped model, package, and research-engine versions to 0.10.0.
+
 ## 0.9.0 - 2026-06-19
 
 - Upgraded the production-network explorer with draggable sectors, layout switching, neighborhood focus, path highlighting, systemic-sector ranking, minimap, and local edge rewiring.

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.10.0",
+  "milestone": 9,
+  "generatedDate": "2026-06-19",
+  "status": "structured_presentation_workspace",
+  "views": [
+    {
+      "id": "overview",
+      "label": "Overview",
+      "purpose": "Research brief, current endpoint, artifact status"
+    },
+    {
+      "id": "experiment",
+      "label": "Simulator",
+      "purpose": "Scenario controls, metadata, counterfactual charts, asset channels"
+    },
+    {
+      "id": "networks",
+      "label": "Networks",
+      "purpose": "Production-network graph analytics and sector stress"
+    },
+    {
+      "id": "labor",
+      "label": "Labor",
+      "purpose": "Employer-worker flow and labor-market indicators"
+    },
+    {
+      "id": "manuscript",
+      "label": "Manuscript",
+      "purpose": "Research notes, limitations, literature anchors, reproducibility"
+    }
+  ],
+  "rawMicrostateIncluded": false,
+  "siteWarningsRequired": true
+}

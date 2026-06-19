@@ -7,7 +7,7 @@ import {
   runSimulation
 } from "../src";
 
-describe("runSimulation milestone 8 browser companion", () => {
+describe("runSimulation milestone 9 browser companion", () => {
   it("is deterministic for a fixed seed", () => {
     const first = runSimulation(firstStructuralDemoConfig);
     const second = runSimulation(firstStructuralDemoConfig);
@@ -18,7 +18,7 @@ describe("runSimulation milestone 8 browser companion", () => {
   it("records required metadata and accounting diagnostics", () => {
     const result = runSimulation(firstStructuralDemoConfig);
 
-    expect(result.metadata.scenarioName).toBe("milestone_8_research_site_100k");
+    expect(result.metadata.scenarioName).toBe("milestone_9_presentation_site_100k");
     expect(result.metadata.economyContext).toBe("Norway");
     expect(result.metadata.scale.households).toBe(100_000);
     expect(result.metadata.scale.supplierEdges).toBe(5_000);

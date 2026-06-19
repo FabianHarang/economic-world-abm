@@ -1,8 +1,8 @@
-schema_version: 0.9.0
+schema_version: 0.10.0
 scenario_name: research_scale_baseline
-model_version: 0.9.0
+model_version: 0.10.0
 description: >
-  Milestone 8 research-scale baseline configuration for the offline Python
+  Milestone 9 research-scale baseline configuration for the offline Python
   engine. This config targets typed household, firm, bank, and sparse-network
   arrays with compressed aggregate outputs. It is a benchmark target, not a
   default CI or browser run.

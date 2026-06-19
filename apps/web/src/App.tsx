@@ -11,7 +11,18 @@ import { NetworkExplorer } from "./components/NetworkExplorer";
 import { PathChart } from "./components/PathChart";
 import { ProductionNetworkPanel } from "./components/ProductionNetworkPanel";
 
+type WorkspaceView = "overview" | "experiment" | "networks" | "labor" | "manuscript";
+
+const workspaceViews: Array<{ id: WorkspaceView; label: string; detail: string }> = [
+  { id: "overview", label: "Overview", detail: "research brief" },
+  { id: "experiment", label: "Simulator", detail: "controls and results" },
+  { id: "networks", label: "Networks", detail: "supplier graph" },
+  { id: "labor", label: "Labor", detail: "worker flows" },
+  { id: "manuscript", label: "Manuscript", detail: "docs and limits" }
+];
+
 export function App() {
+  const [activeView, setActiveView] = useState<WorkspaceView>("overview");
   const [handToMouth, setHandToMouth] = useState(0.35);
   const [liquidityBuffer, setLiquidityBuffer] = useState(0.3);
   const [habit, setHabit] = useState(0.2);
@@ -119,14 +130,13 @@ export function App() {
               <p className="amor-kicker">Computational laboratory</p>
               <h1>Large ABM laboratory for inflation and interest rates</h1>
               <p className="hero-lede">
-                We use a large heterogeneous-agent ABM to study the inflation-interest-rate relationship across
-                households, firms, banks, employer-worker links, and production networks. Browser runs are reduced-scale;
-                Milestone 8 adds the research-manuscript surface, a stronger graph-analysis explorer, and labor-market
-                exploration around the browser companion.
+                A structured research workspace for testing the inflation-interest-rate relationship across households,
+                firms, banks, employer-worker links, asset channels, and production networks. Milestone 9 turns the
+                earlier long page into a guided presentation layer for the browser companion and future static results.
               </p>
               <div className="hero-actions">
-                <a className="amor-button" href="#scaffold-status">
-                  View scaffold
+                <a className="amor-button" href="#workspace">
+                  Open workspace
                 </a>
                 <a className="amor-button secondary" href="#model-warning">
                   Read warning
@@ -135,19 +145,15 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 8 research lab</span>
+              <span className="snapshot-title">Milestone 9 presentation site</span>
               <dl>
                 <div>
-                  <dt>Households</dt>
+                  <dt>Browser households</dt>
                   <dd>{firstStructuralDemoConfig.households.toLocaleString()}</dd>
                 </div>
                 <div>
-                  <dt>Firms</dt>
+                  <dt>Browser firms</dt>
                   <dd>{firstStructuralDemoConfig.firms.toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt>Banks</dt>
-                  <dd>{firstStructuralDemoConfig.banks.toLocaleString()}</dd>
                 </div>
                 <div>
                   <dt>Primary economy</dt>
@@ -156,10 +162,6 @@ export function App() {
                 <div>
                   <dt>Research target</dt>
                   <dd>{researchScaleMilestoneConfig.households.toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt>Offline firms</dt>
-                  <dd>{researchScaleMilestoneConfig.firms.toLocaleString()}</dd>
                 </div>
               </dl>
             </aside>
@@ -178,229 +180,239 @@ export function App() {
         </div>
       </section>
 
-      <section className="amor-shell content-section" id="scaffold-status">
-        <div className="section-heading">
-          <p className="amor-kicker">Milestone 8</p>
-          <h2>Manuscript and explorer lab</h2>
-          <p className="section-note">
-            The project now has a manuscript/reproducibility surface, stylized Norway/EU calibration scaffolding,
-            sensitivity sweeps, a graph-analysis production-network explorer, and a labor-market explorer.
-          </p>
-        </div>
-        <div className="metric-grid">
-          <MetricTile label="Manuscript" value="12" detail="Draft chapters and guides" />
-          <MetricTile label="Literature" value="4" detail="Verified starting anchors" />
-          <MetricTile label="Network explorer" value="Graph" detail="Drag, path, rank, rewire" />
-          <MetricTile label="Labor explorer" value="Live" detail="Employer-worker flow view" />
-        </div>
-        <div className="metric-grid companion-grid">
-          <MetricTile label="Offline households" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Research-scale target" />
-          <MetricTile label="Sparse edges" value={researchSupplierEdges.toLocaleString()} detail="Compressed supplier network" />
-          <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Mean treatment minus baseline" />
-          <MetricTile label="Browser companion" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript path" />
-        </div>
-      </section>
-
-      <section className="controls-section">
-        <div className="amor-shell controls-grid">
-          <div>
-            <p className="amor-kicker">Interactive controls</p>
-            <h2>Behavior, supply, and assets</h2>
-          </div>
-          <form className="control-panel" aria-label="Milestone 8 browser companion controls">
-            <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
-            <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
-            <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
-            <ControlSlider label="Debt stress" value={debtStress} onChange={setDebtStress} />
-            <ControlSlider label="Anchored expectations" value={anchoredExpectations} onChange={setAnchoredExpectations} />
-            <ControlSlider label="Matching friction" value={matchingFriction} onChange={setMatchingFriction} />
-            <ControlSlider label="Wage indexation" value={wageIndexation} onChange={setWageIndexation} />
-            <ControlSlider label="Rule switching" value={ruleSwitching} onChange={setRuleSwitching} />
-            <ControlSlider label="Input inventory months" value={inputInventoryTarget} min={0.6} max={3} step={0.05} suffix=" mo" onChange={setInputInventoryTarget} />
-            <ControlSlider label="Delivery fragility" value={deliveryFailureSensitivity} onChange={setDeliveryFailureSensitivity} />
-            <ControlSlider label="Supplier rewiring" value={supplierRewireRate} onChange={setSupplierRewireRate} />
-            <ControlSlider label="Input substitution" value={inputSubstitution} onChange={setInputSubstitution} />
-            <ControlSlider label="Variable mortgages" value={variableMortgageShare} onChange={setVariableMortgageShare} />
-            <ControlSlider label="Wealth effect" value={wealthEffectStrength} onChange={setWealthEffectStrength} />
-            <ControlSlider label="Collateral effect" value={collateralEffectStrength} onChange={setCollateralEffectStrength} />
-            <ControlSlider label="Construction sensitivity" value={constructionDemandSensitivity} onChange={setConstructionDemandSensitivity} />
-            <ControlSlider label="Portfolio rebalancing" value={portfolioRebalanceSpeed} onChange={setPortfolioRebalanceSpeed} />
-          </form>
-        </div>
-      </section>
-
-      <section className="results-section">
-        <div className="amor-shell results-grid">
-          <div>
-            <p className="amor-kicker">Seeded browser companion</p>
-            <h2>Metadata before conclusions</h2>
-            <p>
-              The current browser view remains a paired-seed rate-hike experiment for inspecting mechanisms. Baseline
-              and treatment reuse identical seeds; only the policy-rate shock differs. Norway mortgage exposure is
-              stylized at the high variable-rate range pending calibration.
-            </p>
-            <ul className="metadata-list">
-              <li>Model version: {result.metadata.modelVersion}</li>
-              <li>Experiment: {experiment.metadata.experimentName}</li>
-              <li>Baseline hash: {experiment.metadata.baselineParameterHash}</li>
-              <li>Treatment hash: {experiment.metadata.treatmentParameterHash}</li>
-              <li>Seed policy: {experiment.metadata.pairedSeedPolicy}</li>
-              <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
-              <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
-              <li>Baseline final inflation: {(baselineFinalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
-              <li>Treatment final inflation: {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
-              <li>Delivery attempts: {result.network.deliveryAttempts.toLocaleString()}</li>
-              <li>Supplier rewires: {result.network.rewiredEdges.toLocaleString()}</li>
-              <li>Variable mortgage exposure: {(finalPoint.variableMortgageShare * 100).toFixed(1)} percent</li>
-              <li>Bank credit tightness: {(finalPoint.bankCreditTightness * 100).toFixed(1)} percent</li>
-            </ul>
-          </div>
-          <div className="chart-stack">
-            <PathChart path={result.path} />
-            <PathChart
-              path={result.path}
-              metric="backlogIndex"
-              title="Supply-chain backlog path"
-              caption="Backlog pressure from missed intermediate-input deliveries and inventory shortfalls in the seeded Milestone 4 run."
-              multiplier={100}
-              ceiling={10}
-              variant="amber"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="counterfactual-section">
+      <section className="workspace-section" id="workspace">
         <div className="amor-shell">
-          <div className="section-heading">
-            <p className="amor-kicker">Treatment minus baseline</p>
-            <h2>Paired-seed counterfactual bands</h2>
+          <div className="workspace-header">
+            <div className="section-heading">
+              <p className="amor-kicker">Milestone 9</p>
+              <h2>Structured research workspace</h2>
+              <p className="section-note">
+                The site is now organized as a presentation layer. Choose a view instead of scrolling through every
+                model surface at once.
+              </p>
+            </div>
+            <div className="workspace-health" aria-label="Current run health">
+              <span>Diagnostics</span>
+              <strong>{result.diagnostics.accountingChecksPassed ? "Passed" : "Failed"}</strong>
+              <small>{result.metadata.modelVersion} / {result.metadata.scenarioName}</small>
+            </div>
           </div>
-          <div className="metric-grid">
-            <MetricTile label="Unemployment peak" value={`${experiment.summary.peakUnemploymentDeltaPp.toFixed(2)} pp`} detail="Mean treatment effect" />
-            <MetricTile label="Housing final effect" value={experiment.summary.finalHousingPriceDeltaIndex.toFixed(3)} detail="Treatment minus baseline" />
-            <MetricTile label="Equity final effect" value={experiment.summary.finalEquityPriceDeltaIndex.toFixed(3)} detail="Primary paired seed" />
-            <MetricTile label="Credit tightness final" value={`${experiment.summary.finalBankCreditTightnessDeltaPp.toFixed(2)} pp`} detail="Primary paired seed" />
-          </div>
-          <div className="chart-grid">
-            <CounterfactualChart
-              bands={experiment.bands}
-              metric="inflation"
-              title="Inflation treatment effect"
-              caption="Annualized inflation in treatment minus baseline across paired seeds."
-              unit="pp"
-            />
-            <CounterfactualChart
-              bands={experiment.bands}
-              metric="output"
-              title="Output treatment effect"
-              caption="Output index in treatment minus baseline across paired seeds."
-              unit="index"
-              variant="amber"
-            />
-            <CounterfactualChart
-              bands={experiment.bands}
-              metric="unemployment"
-              title="Unemployment treatment effect"
-              caption="Unemployment-rate treatment effect across paired seeds."
-              unit="pp"
-            />
-            <CounterfactualChart
-              bands={experiment.bands}
-              metric="housing"
-              title="Housing-price treatment effect"
-              caption="Housing index in treatment minus baseline across paired seeds."
-              unit="index"
-              variant="amber"
-            />
-          </div>
-        </div>
-      </section>
 
-      <section className="asset-section">
-        <div className="amor-shell">
-          <div className="section-heading">
-            <p className="amor-kicker">Credit and asset prices</p>
-            <h2>Mortgage, housing, construction, and equity channels</h2>
+          <nav className="workspace-tabs" aria-label="Research workspace views">
+            {workspaceViews.map((view) => (
+              <button
+                type="button"
+                key={view.id}
+                className={activeView === view.id ? "active" : ""}
+                aria-pressed={activeView === view.id}
+                onClick={() => setActiveView(view.id)}
+              >
+                <span>{view.label}</span>
+                <small>{view.detail}</small>
+              </button>
+            ))}
+          </nav>
+
+          <div className="workspace-panel">
+            {activeView === "overview" && (
+              <div className="workspace-view">
+                <div className="briefing-grid">
+                  <article className="briefing-lead">
+                    <p className="amor-kicker">Research brief</p>
+                    <h3>What this page is for</h3>
+                    <p>
+                      Use this site as a guided laboratory: start with the assumptions, inspect paired treatment effects,
+                      move into the network and labor mechanisms, and finish with limitations and reproducibility.
+                    </p>
+                  </article>
+                  <div className="briefing-steps">
+                    <article>
+                      <span>01</span>
+                      <h4>Choose assumptions</h4>
+                      <p>Scenario levers stay in the Simulator view so the page does not start as a wall of controls.</p>
+                    </article>
+                    <article>
+                      <span>02</span>
+                      <h4>Read effects</h4>
+                      <p>Counterfactual charts compare treatment and baseline runs that share identical seeds.</p>
+                    </article>
+                    <article>
+                      <span>03</span>
+                      <h4>Inspect mechanisms</h4>
+                      <p>Network and labor views separate the most important propagation channels.</p>
+                    </article>
+                    <article>
+                      <span>04</span>
+                      <h4>Check limits</h4>
+                      <p>The manuscript view keeps assumptions, citations, and reproducibility close to the model.</p>
+                    </article>
+                  </div>
+                </div>
+
+                <div className="metric-grid">
+                  <MetricTile label="Browser households" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript companion" />
+                  <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline Python engine" />
+                  <MetricTile label="Supplier edges" value={result.metadata.scale.supplierEdges.toLocaleString()} detail="Browser graph scale" />
+                  <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Treatment minus baseline" />
+                </div>
+
+                <div className="result-brief">
+                  <div>
+                    <span>Current treatment endpoint</span>
+                    <strong>{(finalPoint.inflationAnnualized * 100).toFixed(2)}% inflation</strong>
+                    <p>
+                      Final treatment path: housing {finalPoint.housingPriceIndex.toFixed(2)}, equity{" "}
+                      {finalPoint.equityPriceIndex.toFixed(2)}, unemployment{" "}
+                      {(finalPoint.unemploymentRate * 100).toFixed(2)}%, stressed sectors{" "}
+                      {stressedSectorCount.toLocaleString()}.
+                    </p>
+                  </div>
+                  <div>
+                    <span>Static artifact status</span>
+                    <strong>Curated summaries only</strong>
+                    <p>
+                      Milestone 9 adds the presentation structure for future research-scale artifacts. Raw microstate
+                      remains excluded from git.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeView === "experiment" && (
+              <div className="workspace-view">
+                <details className="control-drawer">
+                  <summary>
+                    <span>Scenario controls</span>
+                    <strong>17 levers</strong>
+                  </summary>
+                  <form className="control-panel" aria-label="Milestone 9 browser companion controls">
+                    <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
+                    <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
+                    <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
+                    <ControlSlider label="Debt stress" value={debtStress} onChange={setDebtStress} />
+                    <ControlSlider label="Anchored expectations" value={anchoredExpectations} onChange={setAnchoredExpectations} />
+                    <ControlSlider label="Matching friction" value={matchingFriction} onChange={setMatchingFriction} />
+                    <ControlSlider label="Wage indexation" value={wageIndexation} onChange={setWageIndexation} />
+                    <ControlSlider label="Rule switching" value={ruleSwitching} onChange={setRuleSwitching} />
+                    <ControlSlider label="Input inventory months" value={inputInventoryTarget} min={0.6} max={3} step={0.05} suffix=" mo" onChange={setInputInventoryTarget} />
+                    <ControlSlider label="Delivery fragility" value={deliveryFailureSensitivity} onChange={setDeliveryFailureSensitivity} />
+                    <ControlSlider label="Supplier rewiring" value={supplierRewireRate} onChange={setSupplierRewireRate} />
+                    <ControlSlider label="Input substitution" value={inputSubstitution} onChange={setInputSubstitution} />
+                    <ControlSlider label="Variable mortgages" value={variableMortgageShare} onChange={setVariableMortgageShare} />
+                    <ControlSlider label="Wealth effect" value={wealthEffectStrength} onChange={setWealthEffectStrength} />
+                    <ControlSlider label="Collateral effect" value={collateralEffectStrength} onChange={setCollateralEffectStrength} />
+                    <ControlSlider label="Construction sensitivity" value={constructionDemandSensitivity} onChange={setConstructionDemandSensitivity} />
+                    <ControlSlider label="Portfolio rebalancing" value={portfolioRebalanceSpeed} onChange={setPortfolioRebalanceSpeed} />
+                  </form>
+                </details>
+
+                <div className="results-grid workspace-results">
+                  <div>
+                    <p className="amor-kicker">Seeded browser companion</p>
+                    <h2>Metadata before conclusions</h2>
+                    <p>
+                      Baseline and treatment reuse identical seeds; only the policy-rate shock differs. Norway mortgage
+                      exposure is stylized at the high variable-rate range pending calibration.
+                    </p>
+                    <ul className="metadata-list">
+                      <li>Model version: {result.metadata.modelVersion}</li>
+                      <li>Experiment: {experiment.metadata.experimentName}</li>
+                      <li>Baseline hash: {experiment.metadata.baselineParameterHash}</li>
+                      <li>Treatment hash: {experiment.metadata.treatmentParameterHash}</li>
+                      <li>Seed policy: {experiment.metadata.pairedSeedPolicy}</li>
+                      <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
+                      <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
+                      <li>Baseline final inflation: {(baselineFinalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
+                      <li>Treatment final inflation: {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
+                    </ul>
+                  </div>
+                  <div className="chart-stack">
+                    <PathChart path={result.path} />
+                    <PathChart
+                      path={result.path}
+                      metric="backlogIndex"
+                      title="Supply-chain backlog path"
+                      caption="Backlog pressure from missed intermediate-input deliveries and inventory shortfalls."
+                      multiplier={100}
+                      ceiling={10}
+                      variant="amber"
+                    />
+                  </div>
+                </div>
+
+                <div className="metric-grid">
+                  <MetricTile label="Unemployment peak" value={`${experiment.summary.peakUnemploymentDeltaPp.toFixed(2)} pp`} detail="Mean treatment effect" />
+                  <MetricTile label="Housing final effect" value={experiment.summary.finalHousingPriceDeltaIndex.toFixed(3)} detail="Treatment minus baseline" />
+                  <MetricTile label="Equity final effect" value={experiment.summary.finalEquityPriceDeltaIndex.toFixed(3)} detail="Primary paired seed" />
+                  <MetricTile label="Credit tightness final" value={`${experiment.summary.finalBankCreditTightnessDeltaPp.toFixed(2)} pp`} detail="Primary paired seed" />
+                </div>
+
+                <div className="chart-grid">
+                  <CounterfactualChart bands={experiment.bands} metric="inflation" title="Inflation treatment effect" caption="Annualized inflation in treatment minus baseline across paired seeds." unit="pp" />
+                  <CounterfactualChart bands={experiment.bands} metric="output" title="Output treatment effect" caption="Output index in treatment minus baseline across paired seeds." unit="index" variant="amber" />
+                  <CounterfactualChart bands={experiment.bands} metric="unemployment" title="Unemployment treatment effect" caption="Unemployment-rate treatment effect across paired seeds." unit="pp" />
+                  <CounterfactualChart bands={experiment.bands} metric="housing" title="Housing-price treatment effect" caption="Housing index in treatment minus baseline across paired seeds." unit="index" variant="amber" />
+                </div>
+
+                <AssetChannelsPanel result={result} />
+              </div>
+            )}
+
+            {activeView === "networks" && (
+              <div className="workspace-view">
+                <NetworkExplorer sectors={result.sectors} network={result.network} />
+                <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
+                <div className="work-grid">
+                  <article>
+                    <h3>Supplier stress</h3>
+                    <p>Delivery failures and input shortages can transmit upstream or downstream through the graph.</p>
+                  </article>
+                  <article>
+                    <h3>Rewiring</h3>
+                    <p>Local rewiring is a sandbox interaction for exploring alternate topology assumptions.</p>
+                  </article>
+                  <article>
+                    <h3>Research scale</h3>
+                    <p>{researchSupplierEdges.toLocaleString()} sparse edges are targeted in the offline engine.</p>
+                  </article>
+                </div>
+              </div>
+            )}
+
+            {activeView === "labor" && (
+              <div className="workspace-view">
+                <LaborMarketExplorer result={result} />
+                <div className="metric-grid">
+                  <MetricTile label="Unemployment" value={`${(finalPoint.unemploymentRate * 100).toFixed(2)}%`} detail="Final treatment path" />
+                  <MetricTile label="Vacancy rate" value={`${(finalPoint.vacancyRate * 100).toFixed(2)}%`} detail="Final treatment path" />
+                  <MetricTile label="Hires" value={finalPoint.hires.toLocaleString()} detail="Final period" />
+                  <MetricTile label="Layoffs" value={finalPoint.layoffs.toLocaleString()} detail="Final period" />
+                </div>
+              </div>
+            )}
+
+            {activeView === "manuscript" && (
+              <div className="workspace-view">
+                <ManuscriptPanel result={result} experiment={experiment} />
+                <div className="work-grid">
+                  <article>
+                    <h3>Limitations stay visible</h3>
+                    <p>The site labels current outputs as architecture checks until Norway/EU calibration is complete.</p>
+                  </article>
+                  <article>
+                    <h3>Reproducibility first</h3>
+                    <p>Every result must tie back to model version, scenario name, parameter hash, and seed policy.</p>
+                  </article>
+                  <article>
+                    <h3>Milestone 9 scope</h3>
+                    <p>The new presentation layer prepares the site for curated static research-scale artifacts.</p>
+                  </article>
+                </div>
+              </div>
+            )}
           </div>
-          <AssetChannelsPanel result={result} />
-          <div className="chart-grid">
-            <PathChart
-              path={result.path}
-              metric="housingPriceIndex"
-              title="Housing price index"
-              caption="House-price path from mortgage pass-through, collateral conditions, and construction supply pressure."
-              multiplier={100}
-              floor={85}
-              ceiling={125}
-            />
-            <PathChart
-              path={result.path}
-              metric="equityPriceIndex"
-              title="Firm equity index"
-              caption="Equity valuation path from firm cash flow, leverage, discount rates, and household portfolio exposure."
-              multiplier={100}
-              floor={60}
-              ceiling={140}
-              variant="amber"
-            />
-          </div>
         </div>
-      </section>
-
-      <section className="amor-shell content-section">
-        <div className="section-heading">
-          <p className="amor-kicker">Network explorer</p>
-          <h2>Graph analysis of sector links</h2>
-        </div>
-        <NetworkExplorer sectors={result.sectors} network={result.network} />
-      </section>
-
-      <section className="labor-section">
-        <div className="amor-shell">
-          <div className="section-heading">
-            <p className="amor-kicker">Labor-market explorer</p>
-            <h2>Employer-worker transmission</h2>
-          </div>
-          <LaborMarketExplorer result={result} />
-        </div>
-      </section>
-
-      <section className="amor-shell content-section">
-        <div className="section-heading">
-          <p className="amor-kicker">Milestone 8 manuscript</p>
-          <h2>Research notes, limitations, and reproducibility</h2>
-        </div>
-        <ManuscriptPanel result={result} experiment={experiment} />
-      </section>
-
-      <section className="amor-shell content-section">
-        <div className="section-heading">
-          <p className="amor-kicker">Supply-chain propagation</p>
-          <h2>Sector stress summary</h2>
-        </div>
-        <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
-        <div className="work-grid">
-          <article>
-            <h3>Mortgage market</h3>
-            <p>Variable and fixed mortgage shares convert policy rates into household debt service.</p>
-          </article>
-          <article>
-            <h3>Housing and construction</h3>
-            <p>House prices and credit conditions feed construction demand in the synthetic construction sector.</p>
-          </article>
-          <article>
-            <h3>Equity and portfolios</h3>
-            <p>Firm equity valuation changes household portfolio wealth and risky-asset allocation.</p>
-          </article>
-        </div>
-        <p className="final-metric">
-          Final browser-companion treatment path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
-          housing index {finalPoint.housingPriceIndex.toFixed(2)}, equity index {finalPoint.equityPriceIndex.toFixed(2)},
-          mortgage DSR {(finalPoint.mortgageDebtServiceRatio * 100).toFixed(1)} percent, unemployment{" "}
-          {(finalPoint.unemploymentRate * 100).toFixed(2)} percent. Stressed supply-chain sectors:{" "}
-          {stressedSectorCount.toLocaleString()}.
-        </p>
       </section>
     </main>
   );

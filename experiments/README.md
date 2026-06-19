@@ -6,12 +6,12 @@ Large raw outputs must not be committed to git. Curated small static artifacts f
 
 ## First Configs
 
-- `configs/first_structural_demo.yaml`: 100,000-household Milestone 8 browser companion target.
-- `configs/research_scale_baseline.yaml`: 1,000,000-household Milestone 8 offline benchmark target.
+- `configs/first_structural_demo.yaml`: 100,000-household Milestone 9 browser companion target.
+- `configs/research_scale_baseline.yaml`: 1,000,000-household Milestone 9 offline benchmark target.
 - `calibration/parameter_sets`: stylized, Norway-first, and EU/euro-area parameter scaffolds.
 - `sensitivity/default_sweep.yaml`: default two-parameter phase-diagram sweep.
 
-## Milestone 8 Commands
+## Milestone 9 Commands
 
 ```bash
 python3 experiments/scripts/estimate_memory.py

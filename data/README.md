@@ -14,6 +14,8 @@ This folder separates raw, processed, static-site, and metadata artifacts.
 
 `static-site/milestone8_summary.json` is a small curated website artifact for the current Milestone 8 state. Large raw outputs remain excluded from git.
 
+`static-site/milestone9_presentation.json` records the structured presentation views used by the website. It is a presentation manifest, not a simulation output.
+
 ## Economy Priority
 
 Norway is the first calibration target. EU / Euro area follows as a comparison and extension. Any mixed Norway + EU parameterization must state which assumptions come from which economy.
