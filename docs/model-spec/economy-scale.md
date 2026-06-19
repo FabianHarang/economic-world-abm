@@ -6,7 +6,7 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 4 browser target:
+Current Milestone 5 browser target:
 
 - 100,000 households;
 - 1,000 firms;
@@ -22,7 +22,9 @@ Current Milestone 4 browser target:
 - variable/fixed mortgage exposure;
 - housing price, construction, and equity-price channels;
 - household portfolio choice and collateral effects;
-- bank credit tightness.
+- bank credit tightness;
+- paired-seed baseline/treatment rate-hike experiments;
+- treatment-minus-baseline plots and browser-scale uncertainty bands.
 
 This is intentionally at the high end of browser-scale work and should move to a Web Worker before richer household-period updates, Monte Carlo runs, or local calibration sweeps are added.
 

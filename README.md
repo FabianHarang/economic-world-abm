@@ -25,7 +25,7 @@ GitHub Pages is static hosting, so the project uses two scales:
 - **Browser scale:** interactive, reduced-size simulations in TypeScript/Web Workers.
 - **Research scale:** offline Python/Rust-compatible experiments with struct-of-arrays layouts, sparse production networks, deterministic seeds, and compressed summary artifacts for the website.
 
-Current Milestone 4 browser target: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, and bank credit tightness.
+Current Milestone 5 browser target: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, and paired-seed baseline/treatment rate-hike experiments.
 
 Initial research target: 1,000,000 households, 5,000 firms, 25 banks, and 25 sectors, only after memory estimation confirms that the run is safe on the target machine.
 

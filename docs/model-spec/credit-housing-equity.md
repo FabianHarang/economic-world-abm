@@ -12,7 +12,7 @@ Each household may own a home, carry mortgage debt, and hold a variable-rate mor
 - a slower repricing fixed mortgage rate;
 - a bank-credit-tightness spread.
 
-The default variable-rate exposure is high because Norway is the first calibration target and Norwegian households are more exposed to variable/floating mortgage rates than many Euro area households. The current value is a transparent placeholder until Norway mortgage-stock and interest-binding data are added.
+The default variable-rate exposure is high because Norway is the first calibration target and Norwegian households are much more exposed to variable/floating mortgage rates than many Euro area households. The current browser default targets roughly 90 percent variable exposure, reflecting the working assumption that Norway is usually in the 80-90 percent range. This is still a transparent placeholder until Norway mortgage-stock and interest-binding data are added.
 
 ## Housing Price Index
 

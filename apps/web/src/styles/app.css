@@ -195,11 +195,16 @@
 }
 
 .results-section,
-.asset-section {
+.asset-section,
+.counterfactual-section {
   background: var(--amor-mist);
   border-bottom: 1px solid var(--amor-line);
   border-top: 1px solid var(--amor-line);
   padding: var(--amor-space-8) 0;
+}
+
+.counterfactual-section {
+  background: var(--amor-mist);
 }
 
 .asset-section {
@@ -290,17 +295,20 @@
   padding: var(--amor-space-4);
 }
 
-.path-chart svg {
+.path-chart svg,
+.counterfactual-chart svg {
   display: block;
   width: 100%;
 }
 
-.path-chart line {
+.path-chart line,
+.counterfactual-chart line {
   stroke: var(--amor-line);
   stroke-width: 1;
 }
 
-.path-chart polyline {
+.path-chart polyline,
+.counterfactual-chart polyline {
   fill: none;
   stroke: var(--amor-teal);
   stroke-linecap: round;
@@ -308,19 +316,40 @@
   stroke-width: 3;
 }
 
-.path-chart circle {
+.path-chart circle,
+.counterfactual-chart circle {
   fill: var(--amor-amber);
 }
 
-.path-chart[data-variant="amber"] polyline {
+.path-chart[data-variant="amber"] polyline,
+.counterfactual-chart[data-variant="amber"] polyline {
   stroke: var(--amor-amber);
 }
 
-.path-chart[data-variant="amber"] circle {
+.path-chart[data-variant="amber"] circle,
+.counterfactual-chart[data-variant="amber"] circle {
   fill: var(--amor-teal);
 }
 
-.path-chart figcaption {
+.counterfactual-chart {
+  background: var(--amor-paper-pure);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  margin: 0;
+  padding: var(--amor-space-4);
+}
+
+.counterfactual-chart polygon {
+  fill: rgb(10 79 86 / 12%);
+  stroke: none;
+}
+
+.counterfactual-chart[data-variant="amber"] polygon {
+  fill: rgb(193 143 73 / 14%);
+}
+
+.path-chart figcaption,
+.counterfactual-chart figcaption {
   color: var(--amor-slate);
   font-size: 0.9rem;
   line-height: 1.5;

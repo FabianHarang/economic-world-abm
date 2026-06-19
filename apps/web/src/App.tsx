@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { firstStructuralDemoConfig, researchScaleMilestoneConfig, runSimulation } from "@world-abm/core";
+import { firstStructuralDemoConfig, researchScaleMilestoneConfig, runRateHikeExperiment } from "@world-abm/core";
 import type { ScenarioConfig } from "@world-abm/core";
 import { AssetChannelsPanel } from "./components/AssetChannelsPanel";
+import { CounterfactualChart } from "./components/CounterfactualChart";
 import { ControlSlider } from "./components/ControlSlider";
 import { MetricTile } from "./components/MetricTile";
 import { PathChart } from "./components/PathChart";
@@ -22,7 +23,7 @@ export function App() {
   );
   const [supplierRewireRate, setSupplierRewireRate] = useState(firstStructuralDemoConfig.supplierRewireRate ?? 0.16);
   const [inputSubstitution, setInputSubstitution] = useState(firstStructuralDemoConfig.inputSubstitutionElasticity ?? 0.22);
-  const [variableMortgageShare, setVariableMortgageShare] = useState(firstStructuralDemoConfig.variableMortgageShare ?? 0.88);
+  const [variableMortgageShare, setVariableMortgageShare] = useState(firstStructuralDemoConfig.variableMortgageShare ?? 0.9);
   const [wealthEffectStrength, setWealthEffectStrength] = useState(firstStructuralDemoConfig.wealthEffectStrength ?? 0.16);
   const [collateralEffectStrength, setCollateralEffectStrength] = useState(
     firstStructuralDemoConfig.collateralEffectStrength ?? 0.24
@@ -82,8 +83,17 @@ export function App() {
       wageIndexation
     ]
   );
-  const result = useMemo(() => runSimulation(scenario), [scenario]);
+  const experiment = useMemo(
+    () =>
+      runRateHikeExperiment(scenario, {
+        experimentName: "browser_paired_100bps_rate_hike",
+        seeds: [scenario.seed, scenario.seed + 101]
+      }),
+    [scenario]
+  );
+  const result = experiment.treatment;
   const finalPoint = result.path[result.path.length - 1];
+  const baselineFinalPoint = experiment.baseline.path[experiment.baseline.path.length - 1];
   const stressedSectorCount = result.sectors.filter((sector) => sector.backlogIndex > 0.05 || sector.deliveryFailureRate > 0.05).length;
 
   return (
@@ -119,7 +129,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 4 browser run</span>
+              <span className="snapshot-title">Milestone 5 paired run</span>
               <dl>
                 <div>
                   <dt>Households</dt>
@@ -159,14 +169,14 @@ export function App() {
 
       <section className="amor-shell content-section" id="scaffold-status">
         <div className="section-heading">
-          <p className="amor-kicker">Milestone 4</p>
-          <h2>Credit and asset-channel status</h2>
+          <p className="amor-kicker">Milestone 5</p>
+          <h2>Paired rate-hike experiment status</h2>
         </div>
         <div className="metric-grid">
-          <MetricTile label="Mortgage rate" value={`${(finalPoint.mortgageRateAnnual * 100).toFixed(1)}%`} detail="Weighted variable/fixed household rate" />
-          <MetricTile label="Housing index" value={finalPoint.housingPriceIndex.toFixed(2)} detail="Stylized house-price path" />
-          <MetricTile label="Equity index" value={finalPoint.equityPriceIndex.toFixed(2)} detail="Firm valuation and portfolios" />
-          <MetricTile label="Construction output" value={finalPoint.constructionOutputIndex.toFixed(0)} detail="Housing-linked sector output" />
+          <MetricTile label="Shock" value={`+${experiment.metadata.treatmentShockBps} bps`} detail="Treatment-minus-baseline policy path" />
+          <MetricTile label="Paired seeds" value={experiment.summary.seedCount.toLocaleString()} detail="Identical seeds; policy shock differs" />
+          <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Mean treatment minus baseline" />
+          <MetricTile label="Output trough" value={experiment.summary.troughOutputDeltaIndex.toFixed(2)} detail="Mean output-index difference" />
         </div>
       </section>
 
@@ -176,7 +186,7 @@ export function App() {
             <p className="amor-kicker">Interactive controls</p>
             <h2>Behavior, supply, and assets</h2>
           </div>
-          <form className="control-panel" aria-label="Milestone 4 behavior, supply-chain, and asset controls">
+          <form className="control-panel" aria-label="Milestone 5 behavior, supply-chain, asset, and experiment controls">
             <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
             <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
             <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
@@ -201,21 +211,23 @@ export function App() {
       <section className="results-section">
         <div className="amor-shell results-grid">
           <div>
-            <p className="amor-kicker">Seeded Milestone 4 result</p>
+            <p className="amor-kicker">Seeded Milestone 5 result</p>
             <h2>Metadata before conclusions</h2>
             <p>
-              The current browser run is a stylized 100,000-household ABM with household rules, expectations,
-              employer-worker links, intermediate-input inventories, mortgage pass-through, housing and equity prices,
-              household portfolios, collateral effects, and CPI construction before Norway/EU calibration.
+              The current browser view is a paired-seed rate-hike experiment. Baseline and treatment reuse identical
+              seeds; only the policy-rate shock differs. Norway mortgage exposure is stylized at the high
+              variable-rate range pending calibration.
             </p>
             <ul className="metadata-list">
               <li>Model version: {result.metadata.modelVersion}</li>
-              <li>Scenario: {result.metadata.scenarioName}</li>
-              <li>Parameter hash: {result.metadata.parameterHash}</li>
-              <li>Seed policy: {result.metadata.seedPolicy}</li>
+              <li>Experiment: {experiment.metadata.experimentName}</li>
+              <li>Baseline hash: {experiment.metadata.baselineParameterHash}</li>
+              <li>Treatment hash: {experiment.metadata.treatmentParameterHash}</li>
+              <li>Seed policy: {experiment.metadata.pairedSeedPolicy}</li>
               <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
               <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
-              <li>Expected inflation: {(finalPoint.averageInflationExpectation * 100).toFixed(2)} percent</li>
+              <li>Baseline final inflation: {(baselineFinalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
+              <li>Treatment final inflation: {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
               <li>Delivery attempts: {result.network.deliveryAttempts.toLocaleString()}</li>
               <li>Supplier rewires: {result.network.rewiredEdges.toLocaleString()}</li>
               <li>Variable mortgage exposure: {(finalPoint.variableMortgageShare * 100).toFixed(1)} percent</li>
@@ -231,6 +243,53 @@ export function App() {
               caption="Backlog pressure from missed intermediate-input deliveries and inventory shortfalls in the seeded Milestone 4 run."
               multiplier={100}
               ceiling={10}
+              variant="amber"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="counterfactual-section">
+        <div className="amor-shell">
+          <div className="section-heading">
+            <p className="amor-kicker">Treatment minus baseline</p>
+            <h2>Paired-seed counterfactual bands</h2>
+          </div>
+          <div className="metric-grid">
+            <MetricTile label="Unemployment peak" value={`${experiment.summary.peakUnemploymentDeltaPp.toFixed(2)} pp`} detail="Mean treatment effect" />
+            <MetricTile label="Housing final effect" value={experiment.summary.finalHousingPriceDeltaIndex.toFixed(3)} detail="Treatment minus baseline" />
+            <MetricTile label="Equity final effect" value={experiment.summary.finalEquityPriceDeltaIndex.toFixed(3)} detail="Primary paired seed" />
+            <MetricTile label="Credit tightness final" value={`${experiment.summary.finalBankCreditTightnessDeltaPp.toFixed(2)} pp`} detail="Primary paired seed" />
+          </div>
+          <div className="chart-grid">
+            <CounterfactualChart
+              bands={experiment.bands}
+              metric="inflation"
+              title="Inflation treatment effect"
+              caption="Annualized inflation in treatment minus baseline across paired seeds."
+              unit="pp"
+            />
+            <CounterfactualChart
+              bands={experiment.bands}
+              metric="output"
+              title="Output treatment effect"
+              caption="Output index in treatment minus baseline across paired seeds."
+              unit="index"
+              variant="amber"
+            />
+            <CounterfactualChart
+              bands={experiment.bands}
+              metric="unemployment"
+              title="Unemployment treatment effect"
+              caption="Unemployment-rate treatment effect across paired seeds."
+              unit="pp"
+            />
+            <CounterfactualChart
+              bands={experiment.bands}
+              metric="housing"
+              title="Housing-price treatment effect"
+              caption="Housing index in treatment minus baseline across paired seeds."
+              unit="index"
               variant="amber"
             />
           </div>
@@ -289,7 +348,7 @@ export function App() {
           </article>
         </div>
         <p className="final-metric">
-          Final Milestone 4 path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
+          Final Milestone 5 treatment path: inflation {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent annualized,
           housing index {finalPoint.housingPriceIndex.toFixed(2)}, equity index {finalPoint.equityPriceIndex.toFixed(2)},
           mortgage DSR {(finalPoint.mortgageDebtServiceRatio * 100).toFixed(1)} percent, unemployment{" "}
           {(finalPoint.unemploymentRate * 100).toFixed(2)} percent. Stressed supply-chain sectors:{" "}

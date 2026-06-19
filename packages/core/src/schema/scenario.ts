@@ -157,6 +157,63 @@ export interface AssetMarketSummary {
   readonly variableMortgageShare: number;
 }
 
+export interface CounterfactualDeltaPoint {
+  readonly period: number;
+  readonly inflationDeltaPp: number;
+  readonly outputDeltaIndex: number;
+  readonly unemploymentDeltaPp: number;
+  readonly consumptionDeltaIndex: number;
+  readonly mortgageRateDeltaPp: number;
+  readonly housingPriceDeltaIndex: number;
+  readonly equityPriceDeltaIndex: number;
+  readonly bankCreditTightnessDeltaPp: number;
+}
+
+export interface CounterfactualBandPoint {
+  readonly period: number;
+  readonly inflationDeltaPpMean: number;
+  readonly inflationDeltaPpLow: number;
+  readonly inflationDeltaPpHigh: number;
+  readonly outputDeltaIndexMean: number;
+  readonly outputDeltaIndexLow: number;
+  readonly outputDeltaIndexHigh: number;
+  readonly unemploymentDeltaPpMean: number;
+  readonly unemploymentDeltaPpLow: number;
+  readonly unemploymentDeltaPpHigh: number;
+  readonly housingPriceDeltaIndexMean: number;
+  readonly housingPriceDeltaIndexLow: number;
+  readonly housingPriceDeltaIndexHigh: number;
+}
+
+export interface CounterfactualExperimentResult {
+  readonly metadata: {
+    readonly experimentName: string;
+    readonly modelVersion: string;
+    readonly economyContext: EconomyContext;
+    readonly treatmentShockBps: number;
+    readonly treatmentStartPeriod: number;
+    readonly treatmentDurationPeriods: number;
+    readonly seeds: readonly number[];
+    readonly pairedSeedPolicy: string;
+    readonly baselineParameterHash: string;
+    readonly treatmentParameterHash: string;
+  };
+  readonly baseline: SimulationResult;
+  readonly treatment: SimulationResult;
+  readonly deltas: readonly CounterfactualDeltaPoint[];
+  readonly bands: readonly CounterfactualBandPoint[];
+  readonly summary: {
+    readonly seedCount: number;
+    readonly peakInflationDeltaPp: number;
+    readonly troughOutputDeltaIndex: number;
+    readonly peakUnemploymentDeltaPp: number;
+    readonly finalConsumptionDeltaIndex: number;
+    readonly finalHousingPriceDeltaIndex: number;
+    readonly finalEquityPriceDeltaIndex: number;
+    readonly finalBankCreditTightnessDeltaPp: number;
+  };
+}
+
 export interface SimulationResult {
   readonly metadata: SimulationMetadata;
   readonly path: readonly SimulationPoint[];
@@ -194,8 +251,8 @@ export interface SimulationResult {
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_4_browser_100k",
-  modelVersion: "0.5.0",
+  scenarioName: "milestone_5_browser_100k",
+  modelVersion: "0.6.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,
@@ -234,7 +291,7 @@ export const firstStructuralDemoConfig: ScenarioConfig = {
   centralBankCredibility: 0.55,
   targetInflationAnnual: 0.02,
   debtServiceSensitivity: 0.42,
-  variableMortgageShare: 0.88,
+  variableMortgageShare: 0.9,
   mortgageSpreadBps: 185,
   fixedMortgageRepricingSpeed: 0.08,
   housingSupplyElasticity: 0.28,

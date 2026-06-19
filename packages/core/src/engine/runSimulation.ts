@@ -367,7 +367,7 @@ export function runSimulation(config: ScenarioConfig): SimulationResult {
         periods: config.periods,
         supplierEdges: economy.supplierNetwork.supplierId.length
       },
-      generatedAt: "deterministic-milestone-4"
+      generatedAt: "deterministic-milestone-5"
     },
     path,
     sectors: sectorSummaries,
@@ -520,8 +520,8 @@ function initializeEconomy(config: ScenarioConfig, rng: ReturnType<typeof create
     if (homeowner) {
       homeValue[h] = consumptionHabit[h] * (95 + rng.nextFloat() * 135);
       mortgageDebt[h] = homeValue[h] * (0.34 + rng.nextFloat() * 0.42);
-      const variableTilt = rng.nextFloat() < (config.variableMortgageShare ?? 0.88) ? 1 : 0;
-      variableMortgageShare[h] = variableTilt === 1 ? 0.75 + rng.nextFloat() * 0.25 : rng.nextFloat() * 0.2;
+      const targetVariableShare = clamp(config.variableMortgageShare ?? 0.9, 0.02, 0.98);
+      variableMortgageShare[h] = clamp(targetVariableShare + (rng.nextFloat() - 0.5) * 0.16, 0, 1);
     } else {
       homeValue[h] = 0;
       mortgageDebt[h] = 0;

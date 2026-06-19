@@ -42,3 +42,11 @@ All notable changes to `economic-world-abm` will be documented here.
 - Added collateral headroom and asset-wealth effects in household consumption rules.
 - Added bank mortgage/firm-loan books and bank credit tightness feeding firm credit costs.
 - Added asset-channel controls, charts, and a Milestone 4 dashboard panel in the web app.
+
+## 0.6.0 - 2026-06-19
+
+- Added Milestone 5 paired-seed rate-hike experiments with baseline and treatment scenarios that share identical random seeds.
+- Added treatment-minus-baseline paths for inflation, output, unemployment, consumption, mortgage rates, housing prices, equity prices, and bank credit tightness.
+- Added simple Monte Carlo min/mean/max uncertainty bands across paired seeds.
+- Added counterfactual summary metrics and treatment-effect charts to the AMOR web app.
+- Updated the Norway mortgage assumption so the default realized variable-rate exposure sits in the 80-90% range.
