@@ -16,12 +16,12 @@ import { milestone10StaticResults } from "./data/staticResults";
 type WorkspaceView = "overview" | "experiment" | "results" | "networks" | "labor" | "manuscript";
 
 const workspaceViews: Array<{ id: WorkspaceView; label: string; detail: string }> = [
-  { id: "overview", label: "Overview", detail: "research case" },
-  { id: "experiment", label: "Simulator", detail: "counterfactuals" },
-  { id: "results", label: "Results", detail: "evidence status" },
-  { id: "networks", label: "Networks", detail: "propagation" },
-  { id: "labor", label: "Labor", detail: "income channel" },
-  { id: "manuscript", label: "Manuscript", detail: "reader" }
+  { id: "overview", label: "Overview", detail: "lab purpose" },
+  { id: "experiment", label: "Simulator", detail: "regime tests" },
+  { id: "results", label: "Runs", detail: "saved outputs" },
+  { id: "networks", label: "Networks", detail: "system map" },
+  { id: "labor", label: "Labor", detail: "households" },
+  { id: "manuscript", label: "Lab Guide", detail: "policy regimes" }
 ];
 
 export function App() {
@@ -111,6 +111,8 @@ export function App() {
   const result = experiment.treatment;
   const finalPoint = result.path[result.path.length - 1];
   const baselineFinalPoint = experiment.baseline.path[experiment.baseline.path.length - 1];
+  const inflationTargetAnnual = scenario.targetInflationAnnual ?? 0.02;
+  const inflationTargetGapPp = (finalPoint.inflationAnnualized - inflationTargetAnnual) * 100;
   const stressedSectorCount = result.sectors.filter((sector) => sector.backlogIndex > 0.05 || sector.deliveryFailureRate > 0.05).length;
   const researchSupplierEdges =
     researchScaleMilestoneConfig.firms * (researchScaleMilestoneConfig.supplierEdgesPerFirm ?? 0);
@@ -136,19 +138,19 @@ export function App() {
 
           <div className="hero-grid">
             <div className="hero-copy">
-              <p className="amor-kicker">Computational laboratory</p>
-              <h1>Interest-rate transmission in a networked economy</h1>
+              <p className="amor-kicker">Virtual economy data lab</p>
+              <h1>Test economic regimes before claiming results</h1>
               <p className="hero-lede">
-                A large agent-based macro laboratory for asking when higher rates cool inflation, when credit and
-                mortgage channels dominate, and when firm costs, labor income, housing, and supplier networks change the
-                timing or sign of the response.
+                Build artificial Norway-first economies, change monetary, credit, housing, wage, expectation, and
+                network regimes, and watch how inflation, output, unemployment, household cash flow, and firm stress
+                evolve over time.
               </p>
               <div className="hero-actions">
                 <button className="amor-button" type="button" onClick={() => openWorkspaceView("manuscript")}>
-                  Read manuscript
+                  Open lab guide
                 </button>
-                <button className="amor-button secondary" type="button" onClick={() => openWorkspaceView("overview")}>
-                  Explore model
+                <button className="amor-button secondary" type="button" onClick={() => openWorkspaceView("experiment")}>
+                  Run regime test
                 </button>
                 <a className="amor-button secondary" href="#model-warning">
                   Model warning
@@ -156,24 +158,24 @@ export function App() {
               </div>
             </div>
 
-            <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Research-scale ABM</span>
+            <aside className="hero-snapshot amor-panel" aria-label="Scale shown on this page">
+              <span className="snapshot-title">Three scales, three meanings</span>
               <dl>
                 <div>
-                  <dt>Browser households</dt>
+                  <dt>Interactive browser run</dt>
                   <dd>{firstStructuralDemoConfig.households.toLocaleString()}</dd>
                 </div>
                 <div>
-                  <dt>Browser firms</dt>
-                  <dd>{firstStructuralDemoConfig.firms.toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt>Primary economy</dt>
-                  <dd>{firstStructuralDemoConfig.economyContext}</dd>
-                </div>
-                <div>
-                  <dt>Research target</dt>
+                  <dt>Offline target run</dt>
                   <dd>{researchScaleMilestoneConfig.households.toLocaleString()}</dd>
+                </div>
+                <div>
+                  <dt>Saved smoke artifact</dt>
+                  <dd>{milestone10StaticResults.scale.households.toLocaleString()}</dd>
+                </div>
+                <div>
+                  <dt>Inflation target</dt>
+                  <dd>{(inflationTargetAnnual * 100).toFixed(0)}%</dd>
                 </div>
               </dl>
             </aside>
@@ -184,10 +186,10 @@ export function App() {
       <section className="status-band" id="model-warning">
         <div className="amor-shell">
           <div className="model-warning">
-            This is a model-generated counterfactual laboratory, not a forecast and not policy advice. Early scaffold
-            charts verify architecture and reproducibility. Million-household outputs are generated by the offline
-            engine, then summarized into compressed artifacts. Economic claims require Norway/EU calibration, paired
-            seeds, sensitivity analysis, and documented limitations.
+            This is a virtual-economy laboratory, not a forecast and not a finished empirical finding. The browser runs
+            100,000 households interactively; the local offline engine targets 1,000,000 households; the committed
+            Results artifact is a 2,000-household export test. These are different scales, not the same run. Policy
+            regimes shown here are literature-grounded scenarios to test, not official or personalized advice.
           </div>
         </div>
       </section>
@@ -197,10 +199,10 @@ export function App() {
           <div className="workspace-header">
             <div className="section-heading">
               <p className="amor-kicker">Milestone 10</p>
-              <h2>Research workspace</h2>
+              <h2>Virtual economy data lab</h2>
               <p className="section-note">
-                A reader should be able to move from motivation to mechanisms, inspect counterfactuals, see what is and
-                is not evidence yet, and understand how the project fits the macro literature.
+                Use the page as a structured control room: choose a regime, compare paths, inspect transmission
+                channels, and keep scale and calibration status visible before treating any simulated path as a finding.
               </p>
             </div>
             <div className="workspace-health" aria-label="Current run health">
@@ -210,7 +212,7 @@ export function App() {
             </div>
           </div>
 
-          <nav className="workspace-tabs" aria-label="Research workspace views">
+          <nav className="workspace-tabs" aria-label="Virtual economy lab views">
             {workspaceViews.map((view) => (
               <button
                 type="button"
@@ -230,74 +232,74 @@ export function App() {
               <div className="workspace-view">
                 <div className="briefing-grid">
                   <article className="briefing-lead">
-                    <p className="amor-kicker">Research brief</p>
-                    <h3>Why this model exists</h3>
+                    <p className="amor-kicker">Lab brief</p>
+                    <h3>What this lab is for</h3>
                     <p>
-                      The inflation-interest-rate relationship is not one channel. A rate increase changes household
-                      cash flow, credit supply, firm working-capital costs, wages, asset prices, and supplier
-                      bottlenecks. A large ABM lets those channels interact instead of forcing them into one average
-                      representative household or firm.
+                      The goal is to create a virtual economy where we can test regimes and compare how the economy
+                      evolves. Interest rates are one regime lever, but the lab also exposes credit, housing, wage,
+                      expectation, fiscal, and supplier-network assumptions.
                     </p>
                   </article>
                   <div className="briefing-steps">
                     <article>
                       <span>01</span>
-                      <h4>Research question</h4>
-                      <p>When do rate hikes reduce inflation quickly, and when do cost, credit, and network channels delay or offset the effect?</p>
+                      <h4>Build the economy</h4>
+                      <p>Create households, firms, banks, jobs, mortgages, assets, and supplier links with Norway first.</p>
                     </article>
                     <article>
                       <span>02</span>
-                      <h4>Norway first</h4>
-                      <p>High variable-rate mortgage exposure makes household cash-flow transmission central before the EU comparison is added.</p>
+                      <h4>Choose a regime</h4>
+                      <p>Change rate paths, expectation anchoring, mortgage pass-through, credit tightness, and wage behavior.</p>
                     </article>
                     <article>
                       <span>03</span>
-                      <h4>Counterfactual design</h4>
-                      <p>Treatment and baseline economies share seeds; the policy-rate path is the controlled difference.</p>
+                      <h4>Compare paths</h4>
+                      <p>Baseline and treatment economies share seeds, so the policy change is isolated as cleanly as possible.</p>
                     </article>
                     <article>
                       <span>04</span>
-                      <h4>Mechanism inspection</h4>
-                      <p>Network and labor views show where aggregate paths come from: supplier stress, layoffs, vacancies, and income effects.</p>
+                      <h4>Inspect channels</h4>
+                      <p>Network and labor views show supplier stress, layoffs, vacancies, cash-flow pressure, and income effects.</p>
                     </article>
                     <article>
                       <span>05</span>
-                      <h4>Evidence status</h4>
-                      <p>Current artifacts are reproducibility checks. Economic claims require calibrated Norway/EU data and many paired seeds.</p>
+                      <h4>Respect scale</h4>
+                      <p>100,000 households are live in the browser; 1,000,000 is the offline target; 2,000 is a saved export test.</p>
                     </article>
                     <article>
                       <span>06</span>
-                      <h4>Manuscript</h4>
-                      <p>The Manuscript view now presents the readable argument, literature position, and research roadmap.</p>
+                      <h4>Test disinflation</h4>
+                      <p>The Lab Guide turns the 2% inflation target into concrete regimes to test, calibrate, and stress.</p>
                     </article>
                   </div>
                 </div>
 
                 <div className="metric-grid">
-                  <MetricTile label="Browser households" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript companion" />
-                  <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline Python engine" />
+                  <MetricTile label="Browser run" value={result.metadata.scale.households.toLocaleString()} detail="Interactive households now" />
+                  <MetricTile label="Offline target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Local engine target" />
                   <MetricTile label="Supplier edges" value={result.metadata.scale.supplierEdges.toLocaleString()} detail="Browser graph scale" />
-                  <MetricTile label="Current artifact" value={milestone10StaticResults.scale.households.toLocaleString()} detail="Smoke-scale evidence contract" />
-                  <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Treatment minus baseline" />
+                  <MetricTile label="Saved artifact" value={milestone10StaticResults.scale.households.toLocaleString()} detail="Export smoke test" />
+                  <MetricTile label="Gap to 2%" value={`${inflationTargetGapPp.toFixed(2)} pp`} detail="Final browser treatment" />
                 </div>
 
                 <div className="result-brief">
                   <div>
-                    <span>Current browser experiment</span>
+                    <span>Current uncalibrated browser run</span>
                     <strong>{(finalPoint.inflationAnnualized * 100).toFixed(2)}% inflation</strong>
                     <p>
-                      The live companion is a mechanism run, not a forecast. Final treatment path: housing {finalPoint.housingPriceIndex.toFixed(2)}, equity{" "}
+                      This number is far from the {(inflationTargetAnnual * 100).toFixed(0)}% target and should be read as a calibration problem to
+                      solve, not as a policy result. Final path: housing {finalPoint.housingPriceIndex.toFixed(2)}, equity{" "}
                       {finalPoint.equityPriceIndex.toFixed(2)}, unemployment{" "}
                       {(finalPoint.unemploymentRate * 100).toFixed(2)}%, stressed sectors{" "}
                       {stressedSectorCount.toLocaleString()}.
                     </p>
                   </div>
                   <div>
-                    <span>Static artifact status</span>
-                    <strong>{milestone10StaticResults.diagnosticsPassed ? "Diagnostics passed" : "Diagnostics failed"}</strong>
+                    <span>Scale clarity</span>
+                    <strong>100k / 1m / 2k</strong>
                     <p>
-                      The Results view shows the current evidence contract: what the offline engine can publish on a
-                      static site while raw household and firm microstate stay out of git.
+                      The app shows three different objects: the browser simulation, the offline million-household
+                      target, and a small saved artifact used to test static-site publication.
                     </p>
                   </div>
                 </div>
@@ -334,12 +336,12 @@ export function App() {
 
                 <div className="results-grid workspace-results">
                   <div>
-                    <p className="amor-kicker">Counterfactual design</p>
-                    <h2>One shock, two matched economies</h2>
+                    <p className="amor-kicker">Regime test</p>
+                    <h2>Baseline versus policy-rate path</h2>
                     <p>
-                      The simulator compares a baseline path with a treatment path that receives a temporary policy-rate
-                      increase. Both economies reuse identical seeds, so differences are read as model-generated
-                      treatment effects under the current assumptions.
+                      The simulator compares a baseline path with a treatment path that receives a temporary rate
+                      increase. Both economies reuse identical seeds, so differences show how this virtual economy
+                      reacts under the current assumptions.
                     </p>
                     <ul className="metadata-list">
                       <li>Model version: {result.metadata.modelVersion}</li>
@@ -349,8 +351,10 @@ export function App() {
                       <li>Seed policy: {experiment.metadata.pairedSeedPolicy}</li>
                       <li>Scale: {result.metadata.scale.households.toLocaleString()} households; {result.metadata.scale.firms.toLocaleString()} firms; {result.metadata.scale.supplierEdges.toLocaleString()} supplier edges</li>
                       <li>Accounting checks: {result.diagnostics.accountingChecksPassed ? "passed" : "failed"}</li>
+                      <li>Inflation target: {(inflationTargetAnnual * 100).toFixed(2)} percent</li>
                       <li>Baseline final inflation: {(baselineFinalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
                       <li>Treatment final inflation: {(finalPoint.inflationAnnualized * 100).toFixed(2)} percent</li>
+                      <li>Treatment gap to target: {inflationTargetGapPp.toFixed(2)} percentage points</li>
                     </ul>
                   </div>
                   <div className="chart-stack">
@@ -394,26 +398,26 @@ export function App() {
             {activeView === "networks" && (
               <div className="workspace-view">
                 <div className="view-intro">
-                  <p className="amor-kicker">Production-network propagation</p>
-                  <h3>Why aggregate inflation can depend on topology</h3>
+                  <p className="amor-kicker">Production-network system map</p>
+                  <h3>Inspect where shocks travel</h3>
                   <p>
-                    Supplier links determine whether higher financing costs and weaker demand stay local or travel
-                    through input shortages, delivery failures, backlogs, and replacement-supplier behavior.
+                    Supplier links determine whether financing costs, demand changes, and input shortages stay local or
+                    travel through delivery failures, backlogs, and replacement-supplier behavior.
                   </p>
                 </div>
                 <NetworkExplorer sectors={result.sectors} network={result.network} />
                 <ProductionNetworkPanel sectors={result.sectors} network={result.network} />
                 <div className="work-grid">
                   <article>
-                    <h3>Literature bridge</h3>
-                    <p>Production-network macro shows that sector centrality and input linkages can amplify shocks.</p>
+                    <h3>Topology lever</h3>
+                    <p>Sector centrality, supplier concentration, and input linkages can amplify or dampen regime shocks.</p>
                   </article>
                   <article>
                     <h3>Model channel</h3>
                     <p>Firms hold input inventories, accumulate backlogs, face delivery failures, and can rewire suppliers.</p>
                   </article>
                   <article>
-                    <h3>Empirical target</h3>
+                    <h3>Offline target</h3>
                     <p>{researchSupplierEdges.toLocaleString()} sparse edges are targeted before input-output calibration.</p>
                   </article>
                 </div>
@@ -424,10 +428,11 @@ export function App() {
               <div className="workspace-view">
                 <div className="view-intro">
                   <p className="amor-kicker">Labor-income transmission</p>
-                  <h3>Interest rates matter through paychecks, not only discount factors</h3>
+                  <h3>Household cash flow is a regime channel</h3>
                   <p>
                     The labor view connects firm stress to vacancies, layoffs, unemployment, consumption pressure, and
-                    wage growth. This is where household heterogeneity becomes macro-relevant.
+                    wage growth. In Norway, high variable-rate mortgage exposure makes household cash flow especially
+                    important to test.
                   </p>
                 </div>
                 <LaborMarketExplorer result={result} />
@@ -445,16 +450,16 @@ export function App() {
                 <ManuscriptPanel result={result} experiment={experiment} />
                 <div className="work-grid">
                   <article>
-                    <h3>Readable argument</h3>
-                    <p>The manuscript view now carries motivation, contribution, model design, and interpretation rules.</p>
+                    <h3>Lab purpose</h3>
+                    <p>The guide explains what the virtual economy data lab can test and what remains uncalibrated.</p>
                   </article>
                   <article>
-                    <h3>Literature position</h3>
-                    <p>The project is framed against HANK, financial accelerator, production-network, and ABM research.</p>
+                    <h3>Policy regimes</h3>
+                    <p>The guide translates inflation-targeting literature into concrete scenarios for the lab.</p>
                   </article>
                   <article>
-                    <h3>Evidence discipline</h3>
-                    <p>Current outputs remain architecture checks until Norway/EU calibration and paired-seed sweeps mature.</p>
+                    <h3>Scale discipline</h3>
+                    <p>Current outputs remain mechanism checks until Norway/EU calibration and paired-seed sweeps mature.</p>
                   </article>
                 </div>
               </div>

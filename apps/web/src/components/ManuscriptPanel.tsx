@@ -6,72 +6,140 @@ interface ManuscriptPanelProps {
 }
 
 const outline = [
-  ["motivation", "Motivation"],
-  ["contribution", "Contribution"],
-  ["literature", "Literature position"],
-  ["model", "Model design"],
-  ["interpretation", "Current evidence"],
-  ["roadmap", "Research roadmap"]
+  ["purpose", "Lab purpose"],
+  ["scale", "Scale"],
+  ["target", "2% target"],
+  ["regimes", "Policy regimes"],
+  ["calibration", "Calibration"],
+  ["sources", "Source anchors"]
 ] as const;
 
-const literatureCards = [
+const scaleCards = [
   {
-    title: "Heterogeneous-agent monetary economics",
-    anchor: "Kaplan, Moll, and Violante; Auclert; McKay and Reis",
+    title: "Interactive browser run",
+    value: "100,000 households",
     text:
-      "HANK models show why household balance sheets and marginal propensities to consume matter for monetary transmission. This project keeps that distributional concern, then adds explicit firms, banks, labor links, and network propagation."
+      "This is the live TypeScript economy shown in the controls, charts, networks, and labor views. It is meant for fast exploration."
   },
   {
-    title: "Financial accelerator and collateral channels",
-    anchor: "Bernanke, Gertler, and Gilchrist; Kiyotaki and Moore; Iacoviello",
+    title: "Local offline target",
+    value: "1,000,000 households",
     text:
-      "Credit frictions can amplify small shocks through net worth, collateral, and borrowing constraints. The ABM makes these channels visible through bank tightness, mortgage payments, housing prices, equity values, and firm cash flow."
+      "This is the large local engine target for heavier paired-seed runs, calibration sweeps, and compressed artifacts."
   },
   {
-    title: "Production-network macroeconomics",
-    anchor: "Acemoglu et al.; Gabaix; Carvalho; Baqaee and Farhi",
+    title: "Saved site artifact",
+    value: "2,000 households",
     text:
-      "Aggregate outcomes can depend on which sectors are connected, how large firms or sectors are, and how shocks move through input-output links. The network view is therefore part of the research design, not decoration."
+      "This small committed artifact tests the static publication contract. It is not the browser run and not the million-household run."
+  }
+] as const;
+
+const policyRegimes = [
+  {
+    title: "Systematic disinflation rule",
+    source: "Taylor; Norges Bank; ECB",
+    text:
+      "Test a transparent reaction rule that raises or holds the policy rate while the inflation gap remains positive, but does not mechanically chase one noisy monthly value."
   },
   {
-    title: "Agent-based macroeconomics",
-    anchor: "Delli Gatti et al.; Dawid and Delli Gatti; Fagiolo and Roventini",
+    title: "Expectations anchor package",
+    source: "Norges Bank; ECB; IMF",
     text:
-      "ABM work studies economies as interacting, out-of-equilibrium systems. The contribution here is not a black-box simulation; it is a reproducible laboratory with paired seeds, diagnostics, documented assumptions, and calibration gates."
+      "Increase central-bank credibility, publish a clear path back to 2%, and test whether better-anchored expectations reduce wage and price persistence."
+  },
+  {
+    title: "Second-round prevention",
+    source: "Norges Bank",
+    text:
+      "Separate temporary energy or import-price shocks from broad spillovers into wages and other prices, then tighten more when spillovers become persistent."
+  },
+  {
+    title: "Aligned fiscal stance",
+    source: "IMF; Norges Bank",
+    text:
+      "Avoid broad demand stimulus while inflation is high. If households need protection, test targeted and offset support rather than economy-wide demand boosts."
+  },
+  {
+    title: "Norway mortgage guardrail",
+    source: "Norges Bank; model assumption",
+    text:
+      "Because Norway is modeled with very high variable-rate mortgage pass-through, rate hikes should be tested with household cash-flow stress, bank credit risk, and housing feedbacks visible."
+  },
+  {
+    title: "Supply-network repair",
+    source: "Norges Bank; ECB",
+    text:
+      "When inflation is partly cost- or bottleneck-driven, monetary policy can limit spillovers, while supplier substitution, inventories, and sector capacity affect the output cost of disinflation."
+  }
+] as const;
+
+const sourceCards = [
+  {
+    title: "Norges Bank: inflation target",
+    href: "https://www.norges-bank.no/en/topics/monetary-policy/inflation/",
+    text:
+      "Norges Bank states a 2% annual inflation target and describes the policy rate as the main instrument for steering inflation."
+  },
+  {
+    title: "Norges Bank: strategy statement",
+    href: "https://www.norges-bank.no/en/topics/monetary-policy/monetary-policy-strategy/",
+    text:
+      "The strategy emphasizes flexible, forward-looking inflation targeting, spillovers into wages and prices, financial imbalances, lags, uncertainty, and gradualism unless risks are severe."
+  },
+  {
+    title: "ECB monetary policy strategy",
+    href: "https://www.ecb.europa.eu/mopo/strategy/strategy-review/ecb.strategyreview_monpol_strategy_statement.en.html",
+    text:
+      "The ECB frames 2% inflation over the medium term as a symmetric target and stresses expectations, context-specific responses, policy-rate instruments, and financial transmission."
+  },
+  {
+    title: "IMF WEO 2023: expectations",
+    href: "https://www.imf.org/en/publications/weo/issues/2023/10/10/world-economic-outlook-october-2023",
+    text:
+      "The IMF argues that anchored expectations and communication can help bring inflation back to target faster and at lower output cost."
+  },
+  {
+    title: "Taylor 1993: policy rules",
+    href: "https://web.stanford.edu/~johntayl/Onlinepaperscombinedbyyear/1993/Discretion_versus_Policy_Rules_in_Practice.pdf",
+    text:
+      "Taylor argues for systematic policy rules with judgment, not blindly mechanical formulas."
   }
 ] as const;
 
 export function ManuscriptPanel({ result, experiment }: ManuscriptPanelProps) {
   const final = result.path[result.path.length - 1];
+  const targetInflation = 0.02;
   const inflation = (final.inflationAnnualized * 100).toFixed(2);
+  const inflationGap = ((final.inflationAnnualized - targetInflation) * 100).toFixed(2);
   const unemployment = (final.unemploymentRate * 100).toFixed(2);
   const output = final.outputIndex.toFixed(2);
   const peakInflationDelta = experiment.summary.peakInflationDeltaPp.toFixed(2);
 
   return (
-    <section className="manuscript-reader" aria-label="Readable manuscript">
+    <section className="manuscript-reader" aria-label="Virtual economy data lab guide">
       <header className="manuscript-cover">
         <div>
-          <p className="amor-kicker">Manuscript reader</p>
-          <h3>Interest-rate transmission in a heterogeneous, networked economy</h3>
+          <p className="amor-kicker">Lab guide</p>
+          <h3>Virtual economy data lab for regime testing</h3>
           <p>
-            The paper asks how a policy-rate increase propagates when households differ in liquidity and debt exposure,
-            firms depend on bank credit and supplier inputs, workers are attached to employers, and Norway-style
-            variable-rate mortgages transmit policy quickly into household cash flow.
+            We have not produced an empirical finding yet. The site is a structured laboratory for building artificial
+            economies, changing regimes, and comparing how inflation, output, unemployment, housing, credit, wages, and
+            supplier networks evolve under those assumptions.
           </p>
         </div>
         <dl className="manuscript-meta">
           <div>
-            <dt>Model version</dt>
-            <dd>{result.metadata.modelVersion}</dd>
+            <dt>Browser economy</dt>
+            <dd>{result.metadata.scale.households.toLocaleString()}</dd>
           </div>
           <div>
-            <dt>Scenario</dt>
-            <dd>{result.metadata.scenarioName}</dd>
+            <dt>Inflation target</dt>
+            <dd>{(targetInflation * 100).toFixed(0)}%</dd>
           </div>
           <div>
-            <dt>Seed policy</dt>
-            <dd>{experiment.metadata.pairedSeedPolicy}</dd>
+            <dt>Current gap</dt>
+            <dd>{inflationGap} pp</dd>
           </div>
           <div>
             <dt>Diagnostics</dt>
@@ -81,7 +149,7 @@ export function ManuscriptPanel({ result, experiment }: ManuscriptPanelProps) {
       </header>
 
       <div className="manuscript-layout">
-        <nav className="manuscript-outline" aria-label="Manuscript outline">
+        <nav className="manuscript-outline" aria-label="Lab guide outline">
           {outline.map(([id, label]) => (
             <a href={`#manuscript-${id}`} key={id}>
               {label}
@@ -90,126 +158,125 @@ export function ManuscriptPanel({ result, experiment }: ManuscriptPanelProps) {
         </nav>
 
         <article className="manuscript-article">
-          <section className="manuscript-chapter" id="manuscript-motivation">
+          <section className="manuscript-chapter" id="manuscript-purpose">
             <span>01</span>
-            <h4>Motivation</h4>
+            <h4>Purpose</h4>
             <p>
-              Monetary policy is often summarized as a demand-management instrument: raise rates, cool spending, reduce
-              inflation. That summary hides several channels that can operate with different signs and delays. Higher
-              rates reduce demand through debt service and credit conditions, but they can also raise firm financing
-              costs, alter housing and collateral values, change wage bargaining pressure, and expose bottlenecks in
-              supplier networks.
+              The lab should answer questions like: what happens if monetary policy is more systematic, expectations
+              are better anchored, mortgage pass-through is stronger, fiscal support is broad or targeted, supplier
+              networks are fragile, or wage indexation is high? The point is to test regimes and inspect the channels,
+              not to announce that one current chart is the economy.
             </p>
             <p>
-              This is especially relevant for Norway. When a large share of mortgages reprices quickly, a policy-rate
-              shock reaches household cash flow faster than in economies dominated by long fixed-rate mortgages. The
-              same rate change can therefore hit consumption, housing demand, bank credit risk, construction, and firm
-              revenues within the same macro episode.
+              Norway remains the first economy because variable-rate mortgages make household cash-flow transmission a
+              central mechanism. EU / Euro area comparisons should be added as separate parameter sets, especially for
+              mortgage pass-through, bank lending, housing structure, and supplier-network exposure.
             </p>
           </section>
 
-          <section className="manuscript-chapter" id="manuscript-contribution">
+          <section className="manuscript-chapter" id="manuscript-scale">
             <span>02</span>
-            <h4>Contribution</h4>
+            <h4>Scale is now explicit</h4>
             <p>
-              The project contributes a computational laboratory rather than a single reduced-form coefficient. It
-              combines household heterogeneity, employer-worker links, banks, mortgage pass-through, housing and equity
-              prices, and a sparse production network inside one paired-seed counterfactual design.
+              The previous page mixed scale language too easily. The lab now distinguishes three separate objects. A
+              live browser run is not the same thing as a local million-household target, and the small saved artifact
+              is only a publication-pipeline test.
             </p>
-            <div className="manuscript-callout">
-              The central object is not whether rates always lower inflation. The central object is the set of
-              conditions under which disinflation dominates cost pass-through, network stress, credit tightening, and
-              asset-price feedbacks.
+            <div className="lab-scale-grid">
+              {scaleCards.map((card) => (
+                <article key={card.title}>
+                  <span>{card.title}</span>
+                  <strong>{card.value}</strong>
+                  <p>{card.text}</p>
+                </article>
+              ))}
             </div>
           </section>
 
-          <section className="manuscript-chapter" id="manuscript-literature">
+          <section className="manuscript-chapter" id="manuscript-target">
             <span>03</span>
-            <h4>Literature position</h4>
-            <p>
-              The model sits between HANK, financial-accelerator, production-network, and ABM traditions. HANK models
-              provide the logic for heterogeneous household transmission; financial-accelerator models motivate credit
-              and collateral feedback; production-network macro motivates supplier-buyer propagation; ABM methodology
-              motivates heterogeneous interacting agents that need not remain near a representative-agent equilibrium.
-            </p>
-          </section>
-
-          <section className="manuscript-chapter" id="manuscript-model">
-            <span>04</span>
-            <h4>Model design</h4>
-            <p>
-              The browser companion runs 100,000 households and 1,000 firms for interactive exploration. The offline
-              engine targets one million households, 5,000 firms, and 75,000 sparse supplier links. Households carry
-              deposits, debt, mortgage exposure, behavior rules, expectations, and employer assignments. Firms carry
-              workers, prices, wages, inventories, backlogs, debt, cash, and equity value. Banks transmit credit
-              tightness and mortgage conditions.
-            </p>
-            <p>
-              Every treatment run is paired with a baseline using identical seeds. This design helps isolate the policy
-              shock from random population and network draws, while still keeping the model stochastic and heterogeneous.
-            </p>
-          </section>
-
-          <section className="manuscript-chapter" id="manuscript-interpretation">
-            <span>05</span>
-            <h4>Current evidence</h4>
+            <h4>The 2% target is the calibration anchor</h4>
             <p>
               The current browser treatment ends with {inflation}% annualized inflation, {unemployment}% unemployment,
-              and an output index of {output}. The paired-seed experiment records a peak inflation treatment effect of{" "}
-              {peakInflationDelta} percentage points. These values are architecture checks, not empirical estimates.
+              output index {output}, and a {inflationGap} percentage-point gap to the 2% target. That is not acceptable
+              as a calibrated macro result. It tells us the current lab parameters produce too much inflation and need a
+              disinflation regime plus calibration discipline.
+            </p>
+            <div className="manuscript-callout">
+              Practical lab advice: treat high simulated inflation as a failed calibration state. The next test should
+              combine a systematic policy-rate rule, stronger expectation anchoring, and explicit checks for wage,
+              mortgage, credit, and supplier-network spillovers.
+            </div>
+          </section>
+
+          <section className="manuscript-chapter" id="manuscript-regimes">
+            <span>04</span>
+            <h4>Policy regimes to test for returning inflation toward 2%</h4>
+            <p>
+              The most sensible first policy package is not a single ad hoc rate hike. It is a transparent disinflation
+              regime: raise or hold rates when the inflation gap and expectations remain too high, communicate the path
+              back to 2%, avoid broad fiscal demand support, and protect financial stability where mortgage pass-through
+              is strong.
+            </p>
+            <div className="policy-regime-grid">
+              {policyRegimes.map((regime) => (
+                <article key={regime.title}>
+                  <span>{regime.source}</span>
+                  <strong>{regime.title}</strong>
+                  <p>{regime.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="manuscript-chapter" id="manuscript-calibration">
+            <span>05</span>
+            <h4>What must be calibrated next</h4>
+            <p>
+              The lab should add a Norway calibration pack before interpreting disinflation paths: mortgage repricing
+              speeds, household debt service, income groups, wage formation, sector employment, CPI/CPI-ATE dynamics,
+              bank credit conditions, import-price exposure, and input-output links. The EU / Euro area pack should then
+              vary the same channels rather than copying Norway’s mortgage structure.
             </p>
             <p>
-              The site therefore separates live simulator output from static artifacts and keeps diagnostics, scenario
-              names, parameter hashes, seed policy, and scale visible. A result becomes an economic claim only after
-              Norway/EU calibration, sensitivity analysis, and many paired seeds.
+              The paired-seed treatment effect currently records a peak inflation effect of {peakInflationDelta}
+              percentage points. That statistic is useful for debugging the lab, but it becomes economically meaningful
+              only after the assumptions match data and sensitivity sweeps show which regimes robustly move inflation
+              toward target.
             </p>
           </section>
 
-          <section className="manuscript-chapter" id="manuscript-roadmap">
+          <section className="manuscript-chapter" id="manuscript-sources">
             <span>06</span>
-            <h4>Research roadmap</h4>
+            <h4>Source anchors used for the policy playbook</h4>
             <p>
-              The next empirical step is not more interface polish. It is data discipline: Norway-first calibration of
-              mortgage pass-through, household debt service, sector employment, price dynamics, input-output exposure,
-              and bank credit conditions, followed by an explicit EU / Euro area comparison.
+              These sources are included so every policy regime in the lab can point back to the literature or official
+              strategy statement that motivated it.
             </p>
-            <p>
-              Only after that should the project publish research-scale paired-seed artifacts as substantive evidence.
-              Until then, the website is a transparent laboratory for model design, mechanism inspection, and
-              reproducibility.
-            </p>
+            <div className="policy-source-list">
+              {sourceCards.map((source) => (
+                <a href={source.href} key={source.title} target="_blank" rel="noreferrer">
+                  <strong>{source.title}</strong>
+                  <span>{source.text}</span>
+                </a>
+              ))}
+            </div>
           </section>
         </article>
       </div>
 
-      <section className="literature-positioning" aria-label="Literature positioning">
-        <div>
-          <p className="amor-kicker">Positioning</p>
-          <h4>How the project relates to existing macro literature</h4>
-        </div>
-        <div className="literature-positioning-grid">
-          {literatureCards.map((card) => (
-            <article key={card.title}>
-              <span>{card.title}</span>
-              <strong>{card.anchor}</strong>
-              <p>{card.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="manuscript-rule-grid" aria-label="Interpretation rules">
+      <section className="manuscript-rule-grid" aria-label="Lab interpretation rules">
         <article>
           <span>Do not overread</span>
-          <p>Current outputs are smoke and architecture checks until calibrated Norway/EU evidence is added.</p>
+          <p>Current outputs are mechanism and architecture checks until Norway/EU calibration is added.</p>
         </article>
         <article>
-          <span>Read channels jointly</span>
-          <p>Demand, mortgage cash flow, credit tightness, collateral, wages, and supplier stress can move together.</p>
+          <span>Use the target</span>
+          <p>Every inflation run should show its gap to the 2% target and whether the regime closes it over time.</p>
         </article>
         <article>
-          <span>Preserve provenance</span>
-          <p>Every figure must remain tied to model version, scenario, seed policy, scale, and parameter hash.</p>
+          <span>Compare regimes</span>
+          <p>Rate paths, expectations, fiscal stance, mortgage pass-through, and supplier repair should be tested jointly.</p>
         </article>
       </section>
     </section>

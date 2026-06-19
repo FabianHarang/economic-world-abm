@@ -87,10 +87,10 @@ export const milestone10StaticResults: StaticSiteArtifact = {
   artifactKind: "milestone_10_static_results",
   artifactPolicy: {
     committedPayload: "metadata_summary_final_period_network_and_ranked_sector_stress",
-    intendedUse: "Static website display, reproducibility checks, and manuscript traceability.",
+    intendedUse: "Static website display, reproducibility checks, and lab-output traceability.",
     limitations: [
       "This artifact is not a forecast and not policy advice.",
-      "Smoke artifacts generated below one million households are computational checks, not final research results.",
+      "Smoke artifacts generated below one million households are computational checks, not final calibrated results.",
       "Economic interpretation requires calibrated Norway-first moments, EU comparison runs, and paired-seed sensitivity analysis."
     ],
     rawMicrostateIncluded: false,

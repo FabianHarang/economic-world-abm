@@ -7,18 +7,18 @@ interface StaticResultsPanelProps {
 export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
   const final = artifact.finalPeriod;
   const policy = artifact.artifactPolicy;
-  const scaleLabel = policy.researchScaleRun ? "Research scale" : "Smoke artifact";
+  const scaleLabel = policy.researchScaleRun ? "Large saved run" : "Export smoke test";
 
   return (
     <section className="static-results-panel" aria-label="Curated static result artifact">
       <div className="artifact-hero">
         <div>
-          <p className="amor-kicker">Evidence status</p>
+          <p className="amor-kicker">Saved lab output</p>
           <h3>{scaleLabel}: {artifact.scenarioName}</h3>
           <p>
-            The current published artifact demonstrates the research pipeline: an offline engine run reduced to
+            The current saved artifact demonstrates the publication pipeline: an offline engine run reduced to
             diagnostics, aggregate outcomes, network metrics, and sector stress rankings. It is deliberately labelled as
-            a smoke artifact until calibrated Norway/EU paired-seed results replace it.
+            an export smoke test until calibrated Norway/EU paired-seed results replace it.
           </p>
         </div>
         <dl className="artifact-id-card">
@@ -48,7 +48,7 @@ export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
           <p>
             {artifact.scale.firms.toLocaleString()} firms, {artifact.scale.banks.toLocaleString()} banks,{" "}
             {artifact.scale.sectors.toLocaleString()} sectors, {artifact.scale.supplierEdges.toLocaleString()} sparse
-            supplier edges.
+            supplier edges. This is not the 100,000-household browser run.
           </p>
         </article>
         <article className="artifact-card">
@@ -82,8 +82,8 @@ export function StaticResultsPanel({ artifact }: StaticResultsPanelProps) {
           <h4>{artifact.economyAssumptions.primary} first, {artifact.economyAssumptions.secondary} comparison</h4>
           <p>{artifact.economyAssumptions.mortgagePassThrough}</p>
           <p>
-            The economic interpretation is intentionally restrained: this run checks the reporting contract before the
-            model is calibrated to Norwegian debt, housing, labor, banking, price, and input-output data.
+            Interpretation is intentionally restrained: this run checks the reporting contract before the model is
+            calibrated to Norwegian debt, housing, labor, banking, price, and input-output data.
           </p>
           <dl>
             <div>

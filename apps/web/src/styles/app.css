@@ -419,7 +419,7 @@
 }
 
 .work-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .companion-grid {
@@ -1468,6 +1468,71 @@
   padding: var(--amor-space-4);
 }
 
+.lab-scale-grid,
+.policy-regime-grid,
+.policy-source-list {
+  display: grid;
+  gap: var(--amor-space-4);
+  margin-top: var(--amor-space-2);
+}
+
+.lab-scale-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.policy-regime-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lab-scale-grid article,
+.policy-regime-grid article,
+.policy-source-list a {
+  background: var(--amor-paper);
+  border: 1px solid var(--amor-line);
+  border-radius: var(--amor-radius-md);
+  display: grid;
+  gap: var(--amor-space-2);
+  padding: var(--amor-space-4);
+}
+
+.lab-scale-grid span,
+.policy-regime-grid span {
+  color: var(--amor-teal);
+  font-family: var(--amor-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lab-scale-grid strong,
+.policy-regime-grid strong,
+.policy-source-list strong {
+  color: var(--amor-petrol);
+  font-family: var(--amor-font-display);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.lab-scale-grid p,
+.policy-regime-grid p,
+.policy-source-list span {
+  color: var(--amor-ink-soft);
+  font-family: var(--amor-font-sans);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.policy-source-list a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.policy-source-list a:hover {
+  border-color: var(--amor-teal);
+}
+
 .literature-positioning {
   background: var(--amor-paper-pure);
   border: 1px solid var(--amor-line);
@@ -1880,6 +1945,8 @@
   .manuscript-cover,
   .manuscript-layout,
   .literature-positioning-grid,
+  .lab-scale-grid,
+  .policy-regime-grid,
   .manuscript-rule-grid,
   .network-explorer-grid,
   .network-panel,
