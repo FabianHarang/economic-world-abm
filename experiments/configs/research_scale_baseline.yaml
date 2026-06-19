@@ -1,11 +1,11 @@
-schema_version: 0.10.0
+schema_version: 0.11.0
 scenario_name: research_scale_baseline
-model_version: 0.10.0
+model_version: 0.11.0
 description: >
-  Milestone 9 research-scale baseline configuration for the offline Python
+  Milestone 10 research-scale baseline configuration for the offline Python
   engine. This config targets typed household, firm, bank, and sparse-network
-  arrays with compressed aggregate outputs. It is a benchmark target, not a
-  default CI or browser run.
+  arrays with compressed aggregate outputs plus curated static-site summaries.
+  It is a benchmark target, not a default CI or browser run.
 economy_context:
   primary: Norway
   secondary: EU_Euro_area
@@ -52,6 +52,8 @@ outputs:
     - network_summary.json
     - aggregate.jsonl.gz
     - sectors.jsonl.gz
+  static_site_artifacts:
+    - data/static-site/milestone10_results.json
   representative_micro_traces: false
   raw_microstate: false
 diagnostics:

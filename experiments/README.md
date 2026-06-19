@@ -6,12 +6,12 @@ Large raw outputs must not be committed to git. Curated small static artifacts f
 
 ## First Configs
 
-- `configs/first_structural_demo.yaml`: 100,000-household Milestone 9 browser companion target.
-- `configs/research_scale_baseline.yaml`: 1,000,000-household Milestone 9 offline benchmark target.
+- `configs/first_structural_demo.yaml`: 100,000-household Milestone 10 browser companion target.
+- `configs/research_scale_baseline.yaml`: 1,000,000-household Milestone 10 offline benchmark target.
 - `calibration/parameter_sets`: stylized, Norway-first, and EU/euro-area parameter scaffolds.
 - `sensitivity/default_sweep.yaml`: default two-parameter phase-diagram sweep.
 
-## Milestone 9 Commands
+## Milestone 10 Commands
 
 ```bash
 python3 experiments/scripts/estimate_memory.py
@@ -29,9 +29,16 @@ PYTHONPATH=research_engine python3 -m world_abm.moments \
 PYTHONPATH=research_engine python3 -m world_abm.sensitivity \
   --config experiments/configs/research_scale_baseline.yaml \
   --out experiments/results/sensitivity
+PYTHONPATH=research_engine python3 -m world_abm.static_site \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --households 2000 \
+  --firms 60 \
+  --periods 5 \
+  --supplier-edges 360 \
+  --out data/static-site/milestone10_results.json
 ```
 
-The research engine writes compressed aggregate and sector artifacts. Raw household microstate is intentionally not written to git.
+The research engine writes compressed aggregate and sector artifacts. The static-site exporter writes small curated summaries for the website. Raw household microstate is intentionally not written to git.
 
 ## Economy Priority
 

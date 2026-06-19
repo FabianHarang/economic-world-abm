@@ -1,6 +1,6 @@
 # 11. Results Discussion
 
-Milestone 8 results are architecture results, not empirical claims. The current browser companion verifies that the model can produce paired-seed baseline and treatment paths, sector summaries, asset-channel summaries, labor-market flows, and production-network diagnostics.
+Milestone 10 results are still architecture and artifact-pipeline results, not empirical claims. The current browser companion verifies that the model can produce paired-seed baseline and treatment paths, sector summaries, asset-channel summaries, labor-market flows, and production-network diagnostics. The static artifact path verifies that offline-engine outputs can be reduced to website-safe summaries.
 
 ## Browser Companion
 
@@ -14,6 +14,7 @@ The current site reports:
 - mortgage, housing, construction, equity, and bank-credit channels;
 - production-network stress and rewiring;
 - labor-market vacancies, layoffs, unemployment, and wage growth.
+- a reduced-scale static artifact with diagnostics, final-period outcomes, network summary, and sector stress rankings.
 
 ## Interpretation Rules
 
@@ -32,4 +33,4 @@ No sign, timing, or magnitude should be treated as a statement about Norway or t
 
 ## Research-Scale Direction
 
-The offline engine is the correct surface for million-household experiments. The next result milestone should run multiple paired seeds, write curated summary artifacts to `data/static-site`, and expose those artifacts on the website without committing raw microstate.
+The offline engine is the correct surface for million-household experiments. The next result milestone should replace the smoke artifact with multiple paired seeds, write curated research-scale summaries to `data/static-site`, and preserve the rule that raw microstate is not committed.

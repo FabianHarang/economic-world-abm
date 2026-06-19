@@ -10,12 +10,15 @@ import { MetricTile } from "./components/MetricTile";
 import { NetworkExplorer } from "./components/NetworkExplorer";
 import { PathChart } from "./components/PathChart";
 import { ProductionNetworkPanel } from "./components/ProductionNetworkPanel";
+import { StaticResultsPanel } from "./components/StaticResultsPanel";
+import { milestone10StaticResults } from "./data/staticResults";
 
-type WorkspaceView = "overview" | "experiment" | "networks" | "labor" | "manuscript";
+type WorkspaceView = "overview" | "experiment" | "results" | "networks" | "labor" | "manuscript";
 
 const workspaceViews: Array<{ id: WorkspaceView; label: string; detail: string }> = [
   { id: "overview", label: "Overview", detail: "research brief" },
   { id: "experiment", label: "Simulator", detail: "controls and results" },
+  { id: "results", label: "Results", detail: "static artifact" },
   { id: "networks", label: "Networks", detail: "supplier graph" },
   { id: "labor", label: "Labor", detail: "worker flows" },
   { id: "manuscript", label: "Manuscript", detail: "docs and limits" }
@@ -131,8 +134,8 @@ export function App() {
               <h1>Large ABM laboratory for inflation and interest rates</h1>
               <p className="hero-lede">
                 A structured research workspace for testing the inflation-interest-rate relationship across households,
-                firms, banks, employer-worker links, asset channels, and production networks. Milestone 9 turns the
-                earlier long page into a guided presentation layer for the browser companion and future static results.
+                firms, banks, employer-worker links, asset channels, and production networks. Milestone 10 adds a
+                curated static-result artifact so offline runs can be presented without loading raw microstate.
               </p>
               <div className="hero-actions">
                 <a className="amor-button" href="#workspace">
@@ -145,7 +148,7 @@ export function App() {
             </div>
 
             <aside className="hero-snapshot amor-panel" aria-label="Current scaffold snapshot">
-              <span className="snapshot-title">Milestone 9 presentation site</span>
+              <span className="snapshot-title">Milestone 10 static results</span>
               <dl>
                 <div>
                   <dt>Browser households</dt>
@@ -184,11 +187,11 @@ export function App() {
         <div className="amor-shell">
           <div className="workspace-header">
             <div className="section-heading">
-              <p className="amor-kicker">Milestone 9</p>
-              <h2>Structured research workspace</h2>
+              <p className="amor-kicker">Milestone 10</p>
+              <h2>Structured results workspace</h2>
               <p className="section-note">
-                The site is now organized as a presentation layer. Choose a view instead of scrolling through every
-                model surface at once.
+                The site separates assumptions, live browser experiments, static offline artifacts, mechanism explorers,
+                and manuscript context.
               </p>
             </div>
             <div className="workspace-health" aria-label="Current run health">
@@ -238,11 +241,16 @@ export function App() {
                     </article>
                     <article>
                       <span>03</span>
+                      <h4>Open artifacts</h4>
+                      <p>Curated static results expose scale, diagnostics, final metrics, and sector stress rankings.</p>
+                    </article>
+                    <article>
+                      <span>04</span>
                       <h4>Inspect mechanisms</h4>
                       <p>Network and labor views separate the most important propagation channels.</p>
                     </article>
                     <article>
-                      <span>04</span>
+                      <span>05</span>
                       <h4>Check limits</h4>
                       <p>The manuscript view keeps assumptions, citations, and reproducibility close to the model.</p>
                     </article>
@@ -253,6 +261,7 @@ export function App() {
                   <MetricTile label="Browser households" value={result.metadata.scale.households.toLocaleString()} detail="Interactive TypeScript companion" />
                   <MetricTile label="Research target" value={researchScaleMilestoneConfig.households.toLocaleString()} detail="Offline Python engine" />
                   <MetricTile label="Supplier edges" value={result.metadata.scale.supplierEdges.toLocaleString()} detail="Browser graph scale" />
+                  <MetricTile label="Static artifact" value={milestone10StaticResults.scale.households.toLocaleString()} detail="Committed smoke-scale run" />
                   <MetricTile label="Peak inflation effect" value={`${experiment.summary.peakInflationDeltaPp.toFixed(2)} pp`} detail="Treatment minus baseline" />
                 </div>
 
@@ -269,10 +278,10 @@ export function App() {
                   </div>
                   <div>
                     <span>Static artifact status</span>
-                    <strong>Curated summaries only</strong>
+                    <strong>{milestone10StaticResults.diagnosticsPassed ? "Diagnostics passed" : "Diagnostics failed"}</strong>
                     <p>
-                      Milestone 9 adds the presentation structure for future research-scale artifacts. Raw microstate
-                      remains excluded from git.
+                      Milestone 10 commits a curated result artifact with metadata, final-period indicators, network
+                      summary, and sector stress rankings. Raw microstate remains excluded from git.
                     </p>
                   </div>
                 </div>
@@ -286,7 +295,7 @@ export function App() {
                     <span>Scenario controls</span>
                     <strong>17 levers</strong>
                   </summary>
-                  <form className="control-panel" aria-label="Milestone 9 browser companion controls">
+                  <form className="control-panel" aria-label="Milestone 10 browser companion controls">
                     <ControlSlider label="Hand-to-mouth" value={handToMouth} onChange={setHandToMouth} />
                     <ControlSlider label="Liquidity buffer" value={liquidityBuffer} onChange={setLiquidityBuffer} />
                     <ControlSlider label="Habit rule" value={habit} onChange={setHabit} />
@@ -359,6 +368,12 @@ export function App() {
               </div>
             )}
 
+            {activeView === "results" && (
+              <div className="workspace-view">
+                <StaticResultsPanel artifact={milestone10StaticResults} />
+              </div>
+            )}
+
             {activeView === "networks" && (
               <div className="workspace-view">
                 <NetworkExplorer sectors={result.sectors} network={result.network} />
@@ -405,8 +420,8 @@ export function App() {
                     <p>Every result must tie back to model version, scenario name, parameter hash, and seed policy.</p>
                   </article>
                   <article>
-                    <h3>Milestone 9 scope</h3>
-                    <p>The new presentation layer prepares the site for curated static research-scale artifacts.</p>
+                    <h3>Milestone 10 scope</h3>
+                    <p>The Results view now presents curated static artifacts while excluding raw microstate.</p>
                   </article>
                 </div>
               </div>

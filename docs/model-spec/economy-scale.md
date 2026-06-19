@@ -6,7 +6,7 @@ The project uses a two-scale architecture because GitHub Pages cannot run a serv
 
 Browser simulations are for exploration, education, and quick counterfactuals.
 
-Current Milestone 9 browser companion:
+Current Milestone 10 browser companion:
 
 - 100,000 households;
 - 1,000 firms;
@@ -27,7 +27,7 @@ Current Milestone 9 browser companion:
 - treatment-minus-baseline plots and browser-scale uncertainty bands.
 - graph-analysis production-network explorer with draggable sectors, path highlighting, systemic-sector ranking, and local rewiring;
 - labor-market explorer for employer-worker transmission.
-- structured presentation workspace that separates overview, simulator, network, labor, and manuscript views.
+- structured presentation workspace that separates overview, simulator, static results, network, labor, and manuscript views.
 
 This is intentionally at the high end of browser-scale work. It remains the interactive companion for inspecting mechanisms while research-scale runs move to the offline engine.
 
@@ -52,6 +52,7 @@ Milestone 6 adds a standard-library Python research engine with:
 - sparse production-network edges in compressed-sparse-row form by buyer;
 - scalable employer-worker representation through firm worker counts plus an initial household-employer snapshot;
 - compressed outputs in `metadata.json`, `summary.json`, `diagnostics.json`, `network_summary.json`, `aggregate.jsonl.gz`, and `sectors.jsonl.gz`;
+- curated static-site summaries in `data/static-site` for browser presentation;
 - cross-scale validation using comparable small, medium, and larger runs before interpreting million-household outputs.
 
 Default research target:

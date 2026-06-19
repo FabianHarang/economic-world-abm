@@ -251,8 +251,8 @@ export interface SimulationResult {
 }
 
 export const firstStructuralDemoConfig: ScenarioConfig = {
-  scenarioName: "milestone_9_presentation_site_100k",
-  modelVersion: "0.10.0",
+  scenarioName: "milestone_10_static_results_site_100k",
+  modelVersion: "0.11.0",
   economyContext: "Norway",
   households: 100_000,
   firms: 1_000,

@@ -634,7 +634,7 @@ def _metadata(config: ResearchScaleConfig, parameter_hash: str) -> dict[str, Any
             "periods": config.periods,
             "supplierEdges": config.supplier_edges_target,
         },
-        "generatedAt": "deterministic-milestone-6",
+        "generatedAt": "deterministic-milestone-10",
     }
 
 

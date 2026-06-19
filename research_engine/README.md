@@ -35,6 +35,13 @@ PYTHONPATH=research_engine python3 -m world_abm.moments \
 PYTHONPATH=research_engine python3 -m world_abm.sensitivity \
   --config experiments/configs/research_scale_baseline.yaml \
   --out experiments/results/sensitivity
+PYTHONPATH=research_engine python3 -m world_abm.static_site \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --households 2000 \
+  --firms 60 \
+  --periods 5 \
+  --supplier-edges 360 \
+  --out data/static-site/milestone10_results.json
 ```
 
 ## Artifacts
@@ -50,6 +57,8 @@ Each run writes:
 
 Raw household microstate is not written by default.
 
+The static-site exporter writes a curated JSON summary with metadata, diagnostics, final-period outcomes, network summary, ranked sector stress, and artifact limitations. The committed Milestone 10 artifact is smoke-scale and should not be read as a calibrated Norway/EU result.
+
 ## Calibration And Sensitivity Utilities
 
 The current research layer includes:
@@ -58,5 +67,6 @@ The current research layer includes:
 - `world_abm.firm_network`: firm and sparse supplier-network generator;
 - `world_abm.moments`: moment-matching loss check;
 - `world_abm.sensitivity`: two-parameter sensitivity sweep with phase-diagram CSV output.
+- `world_abm.static_site`: curated website artifact exporter.
 
 If Python profiling becomes the bottleneck after the model becomes richer, the next candidate is a Rust core with Python bindings and optional WebAssembly export.

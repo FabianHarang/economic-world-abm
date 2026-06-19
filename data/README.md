@@ -16,6 +16,8 @@ This folder separates raw, processed, static-site, and metadata artifacts.
 
 `static-site/milestone9_presentation.json` records the structured presentation views used by the website. It is a presentation manifest, not a simulation output.
 
+`static-site/milestone10_results.json` is the first curated static result artifact for the website. It is a reduced-scale smoke artifact with metadata, final-period outcomes, network summary, and ranked sector stress. It is not a calibrated research result, and it contains no raw microstate.
+
 ## Economy Priority
 
 Norway is the first calibration target. EU / Euro area follows as a comparison and extension. Any mixed Norway + EU parameterization must state which assumptions come from which economy.

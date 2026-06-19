@@ -25,9 +25,9 @@ GitHub Pages is static hosting, so the project uses two scales:
 - **Browser scale:** interactive, reduced-size simulations in TypeScript/Web Workers.
 - **Research scale:** offline Python/Rust-compatible experiments with struct-of-arrays layouts, sparse production networks, deterministic seeds, and compressed summary artifacts for the website.
 
-Current Milestone 9 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, paired-seed baseline/treatment rate-hike experiments, a graph-analysis production-network explorer with local rewiring, a labor-market explorer, and a structured research-workspace presentation.
+Current Milestone 10 browser companion: 100,000 households, 1,000 firms, 25 banks, 20 sectors, 5,000 supplier edges, household behavior rules, expectation rules, wage offers, matching friction, intermediate-input inventories, delivery failures, supplier rewiring, mortgage pass-through, housing prices, construction demand, firm equity values, household portfolio choice, bank credit tightness, paired-seed baseline/treatment rate-hike experiments, a graph-analysis production-network explorer with local rewiring, a labor-market explorer, a structured research-workspace presentation, and a curated static Results view.
 
-Milestone 9 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, with calibration, sensitivity, manuscript, reproducibility, and static-result presentation scaffolding layered around the research runs.
+Milestone 10 research target: 1,000,000 households, 5,000 firms, 25 banks, 25 sectors, and 75,000 sparse supplier edges in the offline Python engine, with calibration, sensitivity, manuscript, reproducibility, and static-result presentation scaffolding layered around the research runs.
 
 ## Calibration Direction
 
@@ -82,21 +82,29 @@ PYTHONPATH=research_engine python3 -m world_abm.moments \
 PYTHONPATH=research_engine python3 -m world_abm.sensitivity \
   --config experiments/configs/research_scale_baseline.yaml \
   --out experiments/results/sensitivity
+PYTHONPATH=research_engine python3 -m world_abm.static_site \
+  --config experiments/configs/research_scale_baseline.yaml \
+  --households 2000 \
+  --firms 60 \
+  --periods 5 \
+  --supplier-edges 360 \
+  --out data/static-site/milestone10_results.json
 ```
 
-The engine is standard-library Python in this milestone: typed arrays for household, firm, bank, and sparse-network state; firm-count employer-worker representation; gzipped aggregate/sector JSONL outputs; synthetic population and firm/network generators; moment matching; and sensitivity/phase-diagram sweeps.
+The engine is standard-library Python in this milestone: typed arrays for household, firm, bank, and sparse-network state; firm-count employer-worker representation; gzipped aggregate/sector JSONL outputs; synthetic population and firm/network generators; moment matching; sensitivity/phase-diagram sweeps; and curated static-site artifact export.
 
-## Milestone 9 Presentation Layer
+## Milestone 10 Static Results Layer
 
-Milestone 9 turns the page from a long list of sections into a structured research workspace:
+Milestone 10 keeps the structured workspace and adds a dedicated Results view backed by `data/static-site/milestone10_results.json`:
 
 - Overview: research brief, current endpoint, and artifact status;
 - Simulator: scenario controls, metadata, charts, and asset channels;
+- Results: static artifact scale, diagnostics, final-period outcomes, network summary, sector stress, and limitations;
 - Networks: production-network explorer and sector stress summary;
 - Labor: employer-worker transmission explorer;
 - Manuscript: research notes, limitations, literature anchors, and reproducibility.
 
-This presentation structure prepares the site for curated static research-scale artifacts without loading raw microstate in the browser.
+The committed Milestone 10 artifact is a reduced-scale smoke artifact. It demonstrates the export path and browser presentation contract; it is not a calibrated Norway/EU research result. Raw household and firm microstate remain excluded from git.
 
 ## Repository Map
 

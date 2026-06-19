@@ -15,8 +15,9 @@ The current implementation provides:
 - mortgage, housing, construction, equity, and bank-credit channels;
 - calibration and sensitivity scaffolding for Norway first, then EU / Euro area;
 - graph-analysis and labor-market explorers for inspecting mechanisms;
+- curated static-site result artifacts for presenting offline-engine outputs without raw microstate;
 - reproducibility rules for seeds, versions, diagnostics, configs, and artifacts.
 
 ## Roadmap
 
-Milestone 8 turns the repository into a manuscript-and-site research surface. The next research tasks are empirical calibration, curated research-scale result artifacts, literature expansion, and stronger uncertainty analysis across many paired seeds.
+Milestone 10 turns the repository into a manuscript-and-site research surface with a static result artifact path. The next research tasks are empirical Norway/EU calibration, replacing smoke artifacts with paired-seed research-scale outputs, literature expansion, and stronger uncertainty analysis across many paired seeds.

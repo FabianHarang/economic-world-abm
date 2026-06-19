@@ -2,6 +2,14 @@
 
 All notable changes to `economic-world-abm` will be documented here.
 
+## 0.11.0 - 2026-06-19
+
+- Added a Milestone 10 curated static-site result exporter for the offline Python engine.
+- Committed `data/static-site/milestone10_results.json` as a reduced-scale smoke artifact with diagnostics, final metrics, network summary, and sector stress rankings.
+- Added a Results workspace view to present static artifacts without loading raw microstate in the browser.
+- Updated active configs, schemas, package versions, and research-engine version to 0.11.0.
+- Documented the static artifact contract and its Norway-first/EU-second interpretation limits.
+
 ## 0.10.0 - 2026-06-19
 
 - Added the Milestone 9 structured research workspace with Overview, Simulator, Networks, Labor, and Manuscript views.
