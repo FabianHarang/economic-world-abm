@@ -6,6 +6,7 @@ import { CounterfactualChart } from "./components/CounterfactualChart";
 import { ControlSlider } from "./components/ControlSlider";
 import { LaborMarketExplorer } from "./components/LaborMarketExplorer";
 import { ManuscriptPanel } from "./components/ManuscriptPanel";
+import { MathematicsPanel } from "./components/MathematicsPanel";
 import { MetricTile } from "./components/MetricTile";
 import { NetworkExplorer } from "./components/NetworkExplorer";
 import { PathChart } from "./components/PathChart";
@@ -13,11 +14,12 @@ import { ProductionNetworkPanel } from "./components/ProductionNetworkPanel";
 import { StaticResultsPanel } from "./components/StaticResultsPanel";
 import { milestone10StaticResults } from "./data/staticResults";
 
-type WorkspaceView = "overview" | "experiment" | "results" | "networks" | "labor" | "manuscript";
+type WorkspaceView = "overview" | "experiment" | "math" | "results" | "networks" | "labor" | "manuscript";
 
 const workspaceViews: Array<{ id: WorkspaceView; label: string; detail: string }> = [
   { id: "overview", label: "Overview", detail: "lab purpose" },
   { id: "experiment", label: "Simulator", detail: "regime tests" },
+  { id: "math", label: "Mathematics", detail: "dynamics" },
   { id: "results", label: "Runs", detail: "saved outputs" },
   { id: "networks", label: "Networks", detail: "system map" },
   { id: "labor", label: "Labor", detail: "households" },
@@ -152,6 +154,9 @@ export function App() {
                 <button className="amor-button secondary" type="button" onClick={() => openWorkspaceView("experiment")}>
                   Run regime test
                 </button>
+                <button className="amor-button secondary" type="button" onClick={() => openWorkspaceView("math")}>
+                  Read mathematics
+                </button>
                 <a className="amor-button secondary" href="#model-warning">
                   Model warning
                 </a>
@@ -268,8 +273,8 @@ export function App() {
                     </article>
                     <article>
                       <span>06</span>
-                      <h4>Test disinflation</h4>
-                      <p>The Lab Guide turns the 2% inflation target into concrete regimes to test, calibrate, and stress.</p>
+                      <h4>Read the math</h4>
+                      <p>The Mathematics view states the simulation dimensions, state variables, timing, and update equations.</p>
                     </article>
                   </div>
                 </div>
@@ -392,6 +397,26 @@ export function App() {
             {activeView === "results" && (
               <div className="workspace-view">
                 <StaticResultsPanel artifact={milestone10StaticResults} />
+              </div>
+            )}
+
+            {activeView === "math" && (
+              <div className="workspace-view">
+                <MathematicsPanel result={result} experiment={experiment} />
+                <div className="work-grid">
+                  <article>
+                    <h3>Dimensions first</h3>
+                    <p>The panel states the active browser dimensions before presenting dynamics.</p>
+                  </article>
+                  <article>
+                    <h3>LaTeX blocks</h3>
+                    <p>Equations are written as copyable LaTeX so they can become formal documentation later.</p>
+                  </article>
+                  <article>
+                    <h3>Code-faithful</h3>
+                    <p>The equations summarize the implemented TypeScript transitions, including clamps and stylized coefficients.</p>
+                  </article>
+                </div>
               </div>
             )}
 
