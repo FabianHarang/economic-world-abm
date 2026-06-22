@@ -1,3 +1,5 @@
+import katex from "katex";
+import "katex/dist/katex.min.css";
 import type { CounterfactualExperimentResult, SimulationResult } from "@world-abm/core";
 
 interface MathematicsPanelProps {
@@ -168,8 +170,8 @@ M_{h,t}\left(\frac{r^M_{h,t}}{12}+0.0028\right).
 a_{h,t}
 =
 D_{h,t}+y_{h,t}
-D_{h,t}\frac{\max(0,i_t-0.012)}{12}
-\mathrm{draw}_{h,t}
++D_{h,t}\frac{\max(0,i_t-0.012)}{12}
++\mathrm{draw}_{h,t}
 -\mathrm{ds}_{h,t}.
 \]`
       },
@@ -364,11 +366,11 @@ Y_{f,t}
 \Delta p^\star_{f,t}
 =
 0.0011+\mathrm{markupPressure}_{f}
-(0.8+\chi_c)\mathrm{marginalCostPressure}_{f,t}
-0.008\,\mathrm{laborDemandPressure}_{f,t}
-0.012(C_t-1)
-0.010\,\mathrm{backlogStress}_{f,t}
-0.055\,\delta_t\chi_c\chi_f.
++(0.8+\chi_c)\mathrm{marginalCostPressure}_{f,t}
++0.008\,\mathrm{laborDemandPressure}_{f,t}
++0.012(C_t-1)
++0.010\,\mathrm{backlogStress}_{f,t}
++0.055\,\delta_t\chi_c\chi_f.
 \]
 
 \[
@@ -448,8 +450,8 @@ K^B_{b,t}=0.082A^B_{b,t}+4000+375(b\bmod 5).
 =
 \mathrm{clip}\left(
 0.11+0.46\,\mathrm{mortStress}_{b,t}
-0.12\,\mathrm{firmStress}_{b,t}
-3.2\max\left(0,0.085-\frac{K^B_{b,t}}{A^B_{b,t}}\right),
++0.12\,\mathrm{firmStress}_{b,t}
++3.2\max\left(0,0.085-\frac{K^B_{b,t}}{A^B_{b,t}}\right),
 0.04,0.72
 \right).
 \]`
@@ -528,15 +530,17 @@ export function MathematicsPanel({ result, experiment }: MathematicsPanelProps) 
         <div>
           <p className="amor-kicker">Current browser dimensions</p>
           <h4>
-            \(N={scale.households.toLocaleString()}\), \(F={scale.firms.toLocaleString()}\), \(B=
-            {scale.banks.toLocaleString()}\), \(S={scale.sectors.toLocaleString()}\), \(T=
-            {scale.periods.toLocaleString()}\)
+            <InlineMath math={`N=${scale.households.toLocaleString()}`} />,{" "}
+            <InlineMath math={`F=${scale.firms.toLocaleString()}`} />,{" "}
+            <InlineMath math={`B=${scale.banks.toLocaleString()}`} />,{" "}
+            <InlineMath math={`S=${scale.sectors.toLocaleString()}`} />,{" "}
+            <InlineMath math={`T=${scale.periods.toLocaleString()}`} />
           </h4>
           <p>
-            The sparse supplier network has \(E={scale.supplierEdges.toLocaleString()}\) directed edges, so the current
-            average incoming supplier degree is \(d={supplierDegree.toFixed(1)}\). The displayed counterfactual uses{" "}
-            {experiment.summary.seedCount.toLocaleString()} paired seeds, meaning baseline and treatment are both run
-            for each seed.
+            The sparse supplier network has <InlineMath math={`E=${scale.supplierEdges.toLocaleString()}`} /> directed
+            edges, so the current average incoming supplier degree is <InlineMath math={`d=${supplierDegree.toFixed(1)}`} />.
+            The displayed counterfactual uses {experiment.summary.seedCount.toLocaleString()} paired seeds, meaning
+            baseline and treatment are both run for each seed.
           </p>
         </div>
         <EquationBlock
@@ -606,7 +610,7 @@ ${scale.supplierEdges}.
         <article>
           <span>Clipping</span>
           <p>
-            Many transitions use {"\\(\\mathrm{clip}(x,a,b)\\)"}. This keeps the browser model numerically stable, but
+            Many transitions use <InlineMath math="\\mathrm{clip}(x,a,b)" />. This keeps the browser model numerically stable, but
             it also means tail behavior is stylized until calibrated sensitivity sweeps are added.
           </p>
         </article>
@@ -640,9 +644,52 @@ function EquationBlock({ title, body }: EquationItem) {
   return (
     <article className="equation-card">
       <h5>{title}</h5>
-      <pre aria-label={`${title} LaTeX equation`}>
-        <code>{body}</code>
-      </pre>
+      <div className="equation-rendered" aria-label={`${title} rendered equation`}>
+        {extractDisplayMath(body).map((math, index) => (
+          <MathBlock key={`${title}-${index}`} math={math} />
+        ))}
+      </div>
+      <details className="latex-source">
+        <summary>LaTeX source</summary>
+        <pre aria-label={`${title} LaTeX source`}>
+          <code>{body}</code>
+        </pre>
+      </details>
     </article>
   );
+}
+
+function MathBlock({ math }: { readonly math: string }) {
+  return (
+    <div
+      className="math-display"
+      dangerouslySetInnerHTML={{
+        __html: katex.renderToString(math, {
+          displayMode: true,
+          throwOnError: false,
+          strict: "ignore"
+        })
+      }}
+    />
+  );
+}
+
+function InlineMath({ math }: { readonly math: string }) {
+  return (
+    <span
+      className="math-inline"
+      dangerouslySetInnerHTML={{
+        __html: katex.renderToString(math, {
+          displayMode: false,
+          throwOnError: false,
+          strict: "ignore"
+        })
+      }}
+    />
+  );
+}
+
+function extractDisplayMath(body: string): string[] {
+  const matches = [...body.matchAll(/\\\[((?:.|\n)*?)\\\]/g)];
+  return matches.map((match) => match[1].trim()).filter(Boolean);
 }

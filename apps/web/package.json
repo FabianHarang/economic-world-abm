@@ -12,6 +12,7 @@
   "dependencies": {
     "@world-abm/core": "0.11.0",
     "@world-abm/ui": "0.11.0",
+    "katex": "^0.17.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
